@@ -1,0 +1,2 @@
+g++ -O3 -finline-functions -funroll-loops -w -fpermissive -o obj/ICE.o -c \
+		ICE.C
