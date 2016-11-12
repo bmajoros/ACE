@@ -1,0 +1,6 @@
+[submodule "perl"]
+	path = perl
+	url = https://github.com/bmajoros/perl.git
+[submodule "BOOM"]
+	path = BOOM
+	url = https://github.com/bmajoros/BOOM.git

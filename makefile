@@ -19,7 +19,7 @@ all: \
 	train-signal-sensor \
 	vcf-to-tvf \
 	tvf-to-fasta \
-	ice \
+	ace \
 	subset-vcf-by-sample \
 	map-annotations \
 	permissions
@@ -2443,12 +2443,12 @@ $(OBJ)/TrellisLink.o:\
 	$(CC) $(CFLAGS) -o $(OBJ)/TrellisLink.o -c \
 		TrellisLink.C
 #--------------------------------------------------------
-$(OBJ)/ice.o:\
-		ice.C
-	$(CC) $(CFLAGS) -o $(OBJ)/ice.o -c \
-		ice.C
+$(OBJ)/ace.o:\
+		ace.C
+	$(CC) $(CFLAGS) -o $(OBJ)/ace.o -c \
+		ace.C
 #---------------------------------------------------------
-ice: \
+ace: \
 		$(OBJ)/SignalPrinter.o \
 		$(OBJ)/OrfAnalyzer.o \
 		$(OBJ)/VariantClassifier.o \
@@ -2508,8 +2508,8 @@ ice: \
 		$(OBJ)/GZilla.o \
 		$(OBJ)/Labeling.o \
 		$(OBJ)/ProjectionChecker.o \
-		$(OBJ)/ice.o
-	$(CC) $(LDFLAGS) -o ice \
+		$(OBJ)/ace.o
+	$(CC) $(LDFLAGS) -o ace \
 		$(OBJ)/SignalPrinter.o \
 		$(OBJ)/OrfAnalyzer.o \
 		$(OBJ)/VariantClassifier.o \
@@ -2569,15 +2569,15 @@ ice: \
 		$(OBJ)/GZilla.o \
 		$(OBJ)/Labeling.o \
 		$(OBJ)/ProjectionChecker.o \
-		$(OBJ)/ice.o \
+		$(OBJ)/ace.o \
 		$(LIBS)
 #--------------------------------------------------------
-$(OBJ)/ice-random.o:\
-		ice-random.C
-	$(CC) $(CFLAGS) -o $(OBJ)/ice-random.o -c \
-		ice-random.C
+$(OBJ)/ace-random.o:\
+		ace-random.C
+	$(CC) $(CFLAGS) -o $(OBJ)/ace-random.o -c \
+		ace-random.C
 #---------------------------------------------------------
-ice-random: \
+ace-random: \
 		$(OBJ)/SignalPrinter.o \
 		$(OBJ)/OrfAnalyzer.o \
 		$(OBJ)/VariantClassifier.o \
@@ -2637,8 +2637,8 @@ ice-random: \
 		$(OBJ)/GZilla.o \
 		$(OBJ)/Labeling.o \
 		$(OBJ)/ProjectionChecker.o \
-		$(OBJ)/ice-random.o
-	$(CC) $(LDFLAGS) -o ice-random \
+		$(OBJ)/ace-random.o
+	$(CC) $(LDFLAGS) -o ace-random \
 		$(OBJ)/SignalPrinter.o \
 		$(OBJ)/OrfAnalyzer.o \
 		$(OBJ)/VariantClassifier.o \
@@ -2698,10 +2698,10 @@ ice-random: \
 		$(OBJ)/GZilla.o \
 		$(OBJ)/Labeling.o \
 		$(OBJ)/ProjectionChecker.o \
-		$(OBJ)/ice-random.o \
+		$(OBJ)/ace-random.o \
 		$(LIBS)
 #---------------------------------------------------------
-ice-test: \
+ace-test: \
 		$(OBJ)/SignalPrinter.o \
 		$(OBJ)/OrfAnalyzer.o \
 		$(OBJ)/VariantClassifier.o \
@@ -2761,8 +2761,8 @@ ice-test: \
 		$(OBJ)/GZilla.o \
 		$(OBJ)/Labeling.o \
 		$(OBJ)/ProjectionChecker.o \
-		$(OBJ)/ice.o
-	$(CC) $(LDFLAGS) -o ice-test \
+		$(OBJ)/ace.o
+	$(CC) $(LDFLAGS) -o ace-test \
 		$(OBJ)/SignalPrinter.o \
 		$(OBJ)/OrfAnalyzer.o \
 		$(OBJ)/VariantClassifier.o \
@@ -2822,7 +2822,7 @@ ice-test: \
 		$(OBJ)/GZilla.o \
 		$(OBJ)/Labeling.o \
 		$(OBJ)/ProjectionChecker.o \
-		$(OBJ)/ice.o \
+		$(OBJ)/ace.o \
 		$(LIBS)
 #---------------------------------------------------------
 $(OBJ)/ProjectionChecker.o:\
@@ -3331,12 +3331,12 @@ subset-vcf-by-sample: \
 		$(OBJ)/subset-vcf-by-sample.o \
 		$(LIBS)
 #---------------------------------------------------------
-$(OBJ)/ice-scan.o:\
-		ice-scan.C
-	$(CC) $(CFLAGS) -o $(OBJ)/ice-scan.o -c \
-		ice-scan.C
+$(OBJ)/ace-scan.o:\
+		ace-scan.C
+	$(CC) $(CFLAGS) -o $(OBJ)/ace-scan.o -c \
+		ace-scan.C
 #---------------------------------------------------------
-ice-scan: \
+ace-scan: \
 		$(OBJ)/SignalPrinter.o \
 		$(OBJ)/OrfAnalyzer.o \
 		$(OBJ)/VariantClassifier.o \
@@ -3396,8 +3396,8 @@ ice-scan: \
 		$(OBJ)/GZilla.o \
 		$(OBJ)/Labeling.o \
 		$(OBJ)/ProjectionChecker.o \
-		$(OBJ)/ice-scan.o
-	$(CC) $(LDFLAGS) -o ice-scan \
+		$(OBJ)/ace-scan.o
+	$(CC) $(LDFLAGS) -o ace-scan \
 		$(OBJ)/SignalPrinter.o \
 		$(OBJ)/OrfAnalyzer.o \
 		$(OBJ)/VariantClassifier.o \
@@ -3457,7 +3457,7 @@ ice-scan: \
 		$(OBJ)/GZilla.o \
 		$(OBJ)/Labeling.o \
 		$(OBJ)/ProjectionChecker.o \
-		$(OBJ)/ice-scan.o \
+		$(OBJ)/ace-scan.o \
 		$(LIBS)
 #--------------------------------------------------------
 $(OBJ)/EnumerateAltStructures_Sim.o:\
