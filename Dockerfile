@@ -41,6 +41,7 @@ RUN cd ${DEST_DIR} && \
     mkdir ace && \
     cd ace && \
     git clone --recursive git://github.com/bmajoros/ACE.git && \
+    cd ACE && \
     make all && \
 
 # Download bgzip from htslib
@@ -53,8 +54,8 @@ RUN git clone https://github.com/samtools/htslib.git && \
 ENV PATH=${DEST_DIR}:${PATH}
 ENV TMPDIR=/tmp/
 ENV ACE=${DEST_DIR}/ace/ACE
-ENV PERLLIB=${DEST_DIR}/ace/perl
-ENV PATH=${DEST_DIR}/ace/ACE:${DEST_DIR}/ace/perl:${PATH}
+ENV PERLLIB=${DEST_DIR}/ace/ACE/perl
+ENV PATH=${DEST_DIR}/ace/ACE:${DEST_DIR}/ace/ACE/perl:${PATH}
 ENV LD_LIBRARY_PATH=/usr/local/lib
 
 # Default command for the image (when is run without any command)
