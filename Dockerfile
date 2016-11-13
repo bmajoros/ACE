@@ -42,7 +42,7 @@ RUN cd ${DEST_DIR} && \
     cd ace && \
     git clone --recursive git://github.com/bmajoros/ACE.git && \
     cd ACE && \
-    make all && \
+    make all
 
 # Download bgzip from htslib
 RUN git clone https://github.com/samtools/htslib.git && \
