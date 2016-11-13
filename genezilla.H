@@ -40,7 +40,7 @@
 
 /****************************************************************
   Comment out the following line if you want prediction on both
-  strands (currently not supported in CIA/ICE):
+  strands (currently not supported in ACE):
 */
 #define FORWARD_STRAND_ONLY
 

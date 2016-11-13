@@ -1,17 +1,17 @@
 /****************************************************************
- ICE.H
+ ACE.H
  Copyright (C)2016 William H. Majoros (martiandna@gmail.com).
  This is OPEN SOURCE SOFTWARE governed by the Gnu General Public
  License (GPL) version 3, as described at www.opensource.org.
  ****************************************************************/
 
-#ifndef INCL_ICE_H
-#define INCL_ICE_H
+#ifndef INCL_ACE_H
+#define INCL_ACE_H
 
-class ICE {
+class ACE {
 public:
-  ICE();
-  ~ICE();
+  ACE();
+  ~ACE();
 private:
   FastaWriter fastaWriter;
   SignalSensors sensors;
