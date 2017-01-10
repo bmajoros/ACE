@@ -8,6 +8,7 @@
 #include <iostream>
 #include "LightGraph.H"
 #include "BOOM/Time.H"
+#include "BOOM/VectorSorter.H"
 using namespace std;
 using namespace BOOM;
 
@@ -32,12 +33,67 @@ LightGraph::LightGraph(File &f)
 
 
 
+LightGraph::LightGraph(const String &substrate,int substrateLength)
+  : leftRegex("left=(\\d+);"), rightRegex("right=(\\d+);"), 
+    edgeIdRegex("edgeID=(\\d+);"), annoRegex("anno=(\\d+);"), 
+    IdRegex("ID=(\\d+);"), substrate(substrate),
+    substrateLength(substrateLength)
+{
+}
+
+
+
 LightGraph::~LightGraph()
 {
   Vector<LightVertex*>::iterator vCur=vertices.begin(), vEnd=vertices.end();
   for(; vCur!=vEnd ; ++vCur) delete *vCur;
   Vector<LightEdge*>::iterator eCur=edges.begin(), eEnd=edges.end();
   for(; eCur!=eEnd ; ++eCur) delete *eCur;
+}
+
+
+
+void LightGraph::addVertex(LightVertex *v)
+{
+  vertices.push_back(v);
+}
+
+
+
+void LightGraph::addEdge(LightEdge *e)
+{
+  //cout<<"ADDING "<<e->getBegin()<<" - "<<e->getEnd()<<" size was "<<edges.size()<<endl;
+  edges.push_back(e);
+}
+
+
+
+void LightGraph::sortVertices()
+{
+  LightVertexComparator cmp;
+  VectorSorter<LightVertex*> sorter(vertices,cmp);
+  sorter.sortAscendInPlace();
+  const int N=vertices.size();
+  for(int i=0 ; i<N ; ++i) vertices[i]->setID(i);
+}
+
+
+
+void LightGraph::sortEdges()
+{
+  LightEdgeComparator cmp;
+  VectorSorter<LightEdge*> sorter(edges,cmp);
+  sorter.sortAscendInPlace();
+  const int N=edges.size();
+  for(int i=0 ; i<N ; ++i) edges[i]->setID(i);
+}
+
+
+
+void LightGraph::sort()
+{
+  sortVertices();
+  sortEdges();
 }
 
 
@@ -56,7 +112,7 @@ bool LightGraph::save(ostream &os)
   const String timestamp=getDateAndTime();
   const int V=vertices.size(), E=edges.size();
   os<<"##gff-version 2\n\
-##source-version LightGraph ver1.x\n\
+##source-version LightGraph version1.0\n\
 ##date "<<timestamp<<"\n\
 ##Type TranscriptGraph\n\
 # stats: "<<V<<" vertices, "<<E<<" edges, "<<substrateLength<<" residues\n\
@@ -252,4 +308,149 @@ void LightGraph::getATGs(Vector<LightVertex*> &ATGs)
 }
 
 
+
+void LightGraph::deleteVertex(int index)
+{
+  delete vertices[index];
+  vertices.cut(index);
+}
+
+
+
+void LightGraph::deleteEdge(int index)
+{
+  delete edges[index];
+  edges.cut(index);
+}
+
+
+
+void LightGraph::dropVertex(int index)
+{
+  vertices[index]=NULL;
+}
+
+
+
+void LightGraph::dropEdge(int index)
+{
+  edges[index]=NULL;
+}
+
+
+
+void LightGraph::deleteNullVertices()
+{
+  int n=vertices.size();
+  for(int i=0 ; i<n ; ++i)
+    if(vertices[i]==NULL) {
+      vertices.cut(i);
+      --i; --n;
+    }
+}
+
+
+
+void LightGraph::deleteNullEdges()
+{
+  int n=edges.size();
+  for(int i=0 ; i<n ; ++i)
+    if(edges[i]==NULL) {
+      edges.cut(i);
+      --i; --n;
+    }
+}
+
+
+
+void LightGraph::deleteEdges(Vector<LightEdge*> &edges)
+{
+  for(Vector<LightEdge*>::iterator cur=edges.begin(), end=edges.end() ;
+	cur!=end ; ++cur) {
+    LightEdge *edge=*cur;
+    edge->getLeft()->dropEdgeOut(edge);
+    edge->getRight()->dropEdgeIn(edge);
+    edges[edge->getID()]=NULL;
+    delete edge;
+  }
+}
+
+
+
+void LightGraph::deleteIncidentEdges(LightVertex *v)
+{
+  deleteEdges(v->getEdgesIn());
+  deleteEdges(v->getEdgesOut());
+}
+
+
+void LightGraph::deleteDuplicates()
+{
+  sort();
+
+  // Delete duplicate vertices
+  const int numVertices=vertices.size();
+  for(int i=0 ; i<numVertices ; ++i) {
+    LightVertex *v=vertices[i]; if(!v) continue;
+    for(int j=i+1 ; j<numVertices ; ++j) {
+      LightVertex *w=vertices[j]; if(!w) continue;
+      if(*v==*w) {
+	deleteIncidentEdges(w);
+	vertices[j]=NULL;
+	delete w;
+      }
+    }
+  }
+
+  // Delete duplicate edges
+  const int numEdges=edges.size();
+  for(int i=0 ; i<numEdges ; ++i) {
+    LightEdge *e=edges[i]; if(!e) continue;
+    for(int j=i+1 ; j<numEdges ; ++j) {
+      LightEdge *f=edges[j]; if(!f) continue;
+      if(*e==*f) {
+	f->getLeft()->dropEdgeOut(f);
+	f->getRight()->dropEdgeIn(f);
+	edges[j]=NULL;
+	delete f;
+      }
+    }
+  }
+  deleteNullVertices();
+  deleteNullEdges();
+}
+
+
+
+bool LightGraph::vertexExists(const String &substrate,Strand strand,
+			      int begin,int end,SignalType type) const
+{
+  for(Vector<LightVertex*>::const_iterator cur=vertices.begin(), End=
+	vertices.end() ; cur!=End ; ++cur) {
+    LightVertex *other=*cur; if(!other) continue;
+    if(substrate==other->getSubstrate() &&
+       strand==other->getStrand() &&
+       begin==other->getBegin() &&
+       end==other->getEnd() &&
+       type==other->getType()) return true;
+  }
+  return false;
+}
+
+
+
+bool LightGraph::edgeExists(const String &substrate,Strand strand,
+			    int begin,int end,ContentType type) const
+{
+  for(Vector<LightEdge*>::const_iterator cur=edges.begin(), End=
+	edges.end() ; cur!=End ; ++cur) {
+    LightEdge *other=*cur; if(!other) continue;
+    if(substrate==other->getSubstrate() &&
+       strand==other->getStrand() &&
+       begin==other->getBegin() &&
+       end==other->getEnd() &&
+       type==other->getType()) return true;
+  }
+  return false;
+}
 

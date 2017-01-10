@@ -20,6 +20,7 @@ class LightEdge {
 public:
   LightEdge(const String &substrate,ContentType,LightVertex *,LightVertex *,
 	    int begin,int end,Strand,int ID);
+  virtual ~LightEdge() {}
   ContentType getType() const;
   inline ContentType getEdgeType() const { return getType(); }
   bool isExon() const;
@@ -31,8 +32,9 @@ public:
   int getLength() const;
   LightVertex *getLeft();
   LightVertex *getRight();
-  float getScore(int frame) const;
+  float getScore(int frame=0) const;
   void setScore(int frame,float score);
+  void setScore(float score) { setScore(0,score); }
   Strand getStrand() const;
   void printOn(ostream &);
   Array1D<int> getFrames() const;
@@ -41,7 +43,12 @@ public:
   int propagateBackward(int phase) const;
   bool isSupported() const;
   void setSupport(bool);
+  bool isBroken() const { return !supported; }
+  bool setBroken(bool b) { supported=!b; }
+  const String &getSubstrate() const { return substrate; }
   int getID() const { return ID; }
+  void setID(int id) { ID=id; }
+  bool operator==(const LightEdge &) const;
 protected:
   LightVertex *left, *right;
   ContentType type;
@@ -50,11 +57,20 @@ protected:
   int ID;
   Strand strand;
   String substrate;
-  bool supported;
+  bool supported;   // False if broken splice site
   int posmod(int) const;
 };
 
 ostream &operator<<(ostream &,const LightEdge &);
+
+struct LightEdgeComparator : public Comparator<LightEdge*> {
+  bool equal(LightEdge* &a,LightEdge* &b)   
+  {return a->getBegin()==b->getBegin();}
+  bool greater(LightEdge* &a,LightEdge* &b) 
+  {return a->getBegin()>b->getBegin();}
+  bool less(LightEdge* &a,LightEdge* &b)    
+  {return a->getBegin()<b->getBegin();}
+};
 
 struct EdgeEndComparator : public Comparator<LightEdge*> {
   bool equal(LightEdge* &a,LightEdge* &b)   {return a->getEnd()==b->getEnd();}

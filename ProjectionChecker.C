@@ -13,8 +13,8 @@ using namespace BOOM;
 
 
 
-ProjectionChecker::ProjectionChecker(const GffTranscript &refTrans,
-				     const GffTranscript &altTrans,
+ProjectionChecker::ProjectionChecker(GffTranscript &refTrans,
+				     GffTranscript &altTrans,
 				     const String &refSubstrate,
 				     const Sequence &refSeq,
 				     const String &altSubstrate,

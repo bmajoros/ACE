@@ -10,15 +10,24 @@
 using namespace std;
 using namespace BOOM;
 
+enum StructureChangeType {
+  STRUCT_NO_CHANGE,
+  STRUCT_EXON_SKIPPING,
+  STRUCT_INTRON_RETENTION,
+  STRUCT_CRYPTIC_SITE
+};
 
 struct StructureChange {
   bool exonSkipping;
   bool intronRetention;
   bool crypticSite;
-  StructureChange() : exonSkipping(false), intronRetention(false), 
-		      crypticSite(false) {}
-  bool anyChange() { return exonSkipping || intronRetention || crypticSite; }
+  StructureChange();
+  bool anyChange();
+  StructureChange &operator+=(const StructureChange &);
+  void printOn(ostream &) const;
 };
+
+ostream &operator<<(ostream &,const StructureChange &);
 
 #endif
 

@@ -16,9 +16,9 @@ using namespace std;
 using namespace BOOM;
 
 struct StartCodon {
-  StartCodon(int pos,float score) : pos(pos), score(score) {}
+  StartCodon(int pos,double score) : pos(pos), score(score) {}
   int pos;
-  float score;
+  double score;
 };
 
 /*  This class works only on forward-strand genes.
@@ -27,7 +27,7 @@ class OrfAnalyzer {
 public:
   OrfAnalyzer(SignalSensors &,int MIN_ORF_LEN);
   GffTranscript *findORF(const GffTranscript &,const String &genomeStr,
-			 const Sequence &genomeSeq,float &startCodonScore,
+			 const Sequence &genomeSeq,double &startCodonScore,
 			 int &genomicStartCodonPos,int &orfLength);
   Essex::CompositeNode *noncodingToCoding(const GffTranscript &refTrans,
 					  const String &refStr,
@@ -39,8 +39,8 @@ public:
 					  int &altOrfLen,
 					  bool reverseStrand,
 					  int altSeqLen,
-					  float &refStartScore,
-					  float &altStartScore,
+					  double &refStartScore,
+					  double &altStartScore,
 					  String &msg);
   GffTranscript *earlierStartCodon(const GffTranscript &refTrans,
 				   const String &refStr,
@@ -51,8 +51,8 @@ public:
 				   const CigarAlignment &altToRef,
 				   int &refOrfLen,
 				   int &altOrfLen,
-				   float &oldStartCodonScore,
-				   float &newStartCodonScore,
+				   double &oldStartCodonScore,
+				   double &newStartCodonScore,
 				   String &oldStartStr,
 				   String &newStartStr,
 				   bool reverseStrand,
@@ -67,11 +67,11 @@ public:
 				  const CigarAlignment &refToAlt,
 				  bool reverseStrand);
   bool findStartCodons(const String &transcript,Vector<StartCodon> &);
-  float startCodonScore(const String &RNA,int consensusPos,SignalSensor *&);
+  double startCodonScore(const String &RNA,int consensusPos,SignalSensor *&);
 private:
   SignalSensors &sensors;
   const int MIN_ORF_LEN;
-  int findStartCodon(const String &transcript,float &startCodonScore);
+  int findStartCodon(const String &transcript,double &startCodonScore);
 };
 
 #endif

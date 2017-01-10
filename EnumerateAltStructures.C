@@ -253,10 +253,8 @@ void EnumerateAltStructures::addIfUnique(TranscriptSignals signals)
   structure->structureChange=signals.getChange();
   if(signals.anyCryptic())
     for(int i=0 ; i<signals.numSignals() ; ++i)
-      if(signals[i].cryptic)  {
+      if(signals[i].cryptic)
 	structure->crypticSignals.push_back(signals[i]);
-	//cout<<structure->crypticSignals.back().cutoff<<endl;
-      }
   altStructures.push_back(structure);
 }
 

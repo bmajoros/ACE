@@ -10,6 +10,7 @@
 #include "BOOM/Vector.H"
 #include "SignalType.H"
 #include "BOOM/Strand.H"
+#include "BOOM/Comparator.H"
 using namespace std;
 using namespace BOOM;
 
@@ -19,23 +20,33 @@ class LightVertex {
 public:
   LightVertex(const String &substrate,SignalType,int begin,int end,
 	      float score,Strand,int ID);
-  void addEdgeIn(LightEdge *);
-  void addEdgeOut(LightEdge *);
-  SignalType getType() const;
+  virtual ~LightVertex() {}
+  virtual void addEdgeIn(LightEdge *);
+  virtual void addEdgeOut(LightEdge *);
+  virtual SignalType getType() const;
   inline SignalType getSignalType() const { return getType(); }
-  int getBegin() const;
-  int getEnd() const;
-  int getID() const;
-  float getScore() const;
-  void setScore(float);
-  Strand getStrand() const;
-  Vector<LightEdge*> &getEdgesIn();
-  Vector<LightEdge*> &getEdgesOut();
-  void printOn(ostream &,String vertexType="vertex");
-  bool isSupported() const;
-  void setSupport(bool);
-  void setAnnotated() { annotated=true; }
-  bool isAnnotated() { return annotated; }
+  inline bool isSpliceSite() { return ::isSpliceSite(type); }
+  virtual int getBegin() const;
+  virtual int getEnd() const;
+  virtual int getID() const;
+  virtual void setID(int);
+  virtual float getScore() const;
+  virtual void setScore(float);
+  virtual Strand getStrand() const;
+  virtual Vector<LightEdge*> &getEdgesIn();
+  virtual Vector<LightEdge*> &getEdgesOut();
+  virtual void printOn(ostream &,String vertexType="vertex");
+  virtual bool isSupported() const;
+  virtual void setSupport(bool);
+  virtual bool isBroken() const { return !supported; }
+  virtual bool setBroken(bool b) { supported=!b; }
+  virtual void setAnnotated() { annotated=true; }
+  virtual void setAnnotated(bool a) { annotated=a; }
+  virtual bool isAnnotated() { return annotated; }
+  virtual const String &getSubstrate() const { return substrate; }
+  virtual void dropEdgeIn(LightEdge *);
+  virtual void dropEdgeOut(LightEdge *);
+  virtual bool operator==(const LightVertex &) const;
 protected:
   Vector<LightEdge*> edgesIn, edgesOut;
   SignalType type;
@@ -44,10 +55,20 @@ protected:
   int begin, end;
   int ID;
   String substrate;
-  bool supported, annotated;
+  bool supported; // False if broken splice site
+  bool annotated; // True if the feature is annotated
 };
 
 ostream &operator<<(ostream &,const LightVertex &);
+
+class LightVertexComparator : public Comparator<LightVertex*> {
+  bool equal(LightVertex *&a,LightVertex *&b) 
+  {return a->getBegin() == b->getBegin();}
+  bool greater(LightVertex *&a,LightVertex *&b)
+  {return a->getBegin() > b->getBegin();}
+  bool less(LightVertex *&a,LightVertex *&b)
+  {return a->getBegin() < b->getBegin();}
+};
 
 #endif
 

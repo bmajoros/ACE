@@ -18,12 +18,12 @@ enum SignalType
     TAG,
     GT,
     AG,
+    TSS, // transcription start site
+    TES, // transcription end site
     UTR5GT,
     UTR5AG,
     UTR3GT,
     UTR3AG,
-    TSS, // transcription start site
-    TES, // transcription end site
     NEG_ATG,
     NEG_TAG,
     NEG_GT,
@@ -70,6 +70,12 @@ bool endsCoding(SignalType);
 bool beginsCoding(SignalType);
 bool beginsIntron(SignalType);
 bool endsIntron(SignalType);
+bool isSpliceSite(SignalType);
+bool isDonor(SignalType);
+bool isAcceptor(SignalType);
+bool isStartCodon(SignalType);
+bool isStopCodon(SignalType);
+bool isStartOrStop(SignalType);
 
 class TypeNamesInitializer
 {

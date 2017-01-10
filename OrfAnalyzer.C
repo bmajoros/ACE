@@ -24,7 +24,7 @@ OrfAnalyzer::OrfAnalyzer(SignalSensors &sensors,int MIN_ORF_LEN)
 GffTranscript *OrfAnalyzer::findORF(const GffTranscript &original,
 				    const String &genomeStr,
 				    const Sequence &genomeSeq,
-				    float &startCodonScore,
+				    double &startCodonScore,
 				    int &genomicStartPos,
 				    int &orfLength)
 {
@@ -43,7 +43,7 @@ GffTranscript *OrfAnalyzer::findORF(const GffTranscript &original,
 
 
 
-float OrfAnalyzer::startCodonScore(const String &RNA,int consensusPos,
+double OrfAnalyzer::startCodonScore(const String &RNA,int consensusPos,
 				   SignalSensor *&sensor)
 {
   sensor=sensors.startCodonSensor;
@@ -61,20 +61,20 @@ float OrfAnalyzer::startCodonScore(const String &RNA,int consensusPos,
     if(start<0 || start>last) return NEGATIVE_INFINITY;
   }
   if(!sensor->consensusOccursAt(RNA,consensusPos)) return NEGATIVE_INFINITY;
-  float score=sensor->getLogP(seq,RNA,start);
+  double score=sensor->getLogP(seq,RNA,start);
   return score;
 }
 
 
 
 int OrfAnalyzer::findStartCodon(const String &transcript,
-				float &startCodonScore)
+				double &startCodonScore)
 {
   SignalSensor *sensor=sensors.startCodonSensor;
   const int footprint=sensor->getContextWindowLength();
   const int offset=sensor->getConsensusOffset();
   const int L=transcript.length();
-  const float cutoff=sensor->getCutoff();
+  const double cutoff=sensor->getCutoff();
   Sequence seq(transcript,DnaAlphabet::global());
   const int last=L-footprint;
   for(int pos=0 ; pos<last ; ++pos) {
@@ -94,12 +94,12 @@ bool OrfAnalyzer::findStartCodons(const String &transcript,
   const int footprint=sensor->getContextWindowLength();
   const int offset=sensor->getConsensusOffset();
   const int L=transcript.length();
-  const float cutoff=sensor->getCutoff();
+  const double cutoff=sensor->getCutoff();
   Sequence seq(transcript,DnaAlphabet::global());
   const int last=L-footprint;
   for(int pos=0 ; pos<last ; ++pos) {
     if(!sensor->consensusOccursAt(transcript,pos+offset)) continue;
-    float score=sensor->getLogP(seq,transcript,pos);
+    double score=sensor->getLogP(seq,transcript,pos);
     if(score>=cutoff) hits.push_back(StartCodon(pos+offset,score));
   }
   return hits.size()>0;
@@ -118,12 +118,12 @@ Essex::CompositeNode *OrfAnalyzer::noncodingToCoding(
 				    int &altOrfLen,
 				    bool reverseStrand,
 				    int altSeqLen,
-				    float &refStartScore,
-				    float &altStartScore,
+				    double &refStartScore,
+				    double &altStartScore,
 				    String &msg)
 {
-  refStartScore=float(NEGATIVE_INFINITY);
-  altStartScore=float(NEGATIVE_INFINITY);
+  refStartScore=double(NEGATIVE_INFINITY);
+  altStartScore=double(NEGATIVE_INFINITY);
   refOrfLen=altOrfLen=0;
   int refGenomicStart, altGenomicStart;
   GffTranscript *refORF=findORF(refTrans,refStr,refSeq,refStartScore,
@@ -160,8 +160,8 @@ OrfAnalyzer::earlierStartCodon(const GffTranscript &refTrans,
 			       const CigarAlignment &altToRef,
 			       int &oldOrfLen,
 			       int &newOrfLen,
-			       float &oldStartCodonScore,
-			       float &newStartCodonScore,
+			       double &oldStartCodonScore,
+			       double &newStartCodonScore,
 			       String &oldStartStr,
 			       String &newStartStr,
 			       bool reverseStrand,
@@ -208,7 +208,7 @@ OrfAnalyzer::earlierStartCodon(const GffTranscript &refTrans,
     }
     else if(begin>=0) {
       Sequence rnaSeq(refRNA,DnaAlphabet::global());
-      float refScore=sensor->getLogP(rnaSeq,refRNA,begin);
+      double refScore=sensor->getLogP(rnaSeq,refRNA,begin);
       if(refScore<sensor->getCutoff()) {
 	change=true;
 	reason="score-below-threshold";
@@ -272,8 +272,8 @@ Essex::CompositeNode *OrfAnalyzer::lostUORFs(const GffTranscript &refTrans,
     if(genomicAltPos<0) INTERNAL_ERROR;
     const int splicedAltPos=
       GffTranscript::genomicToSplicedCoords(genomicAltPos,altExons);
-    float altScore=NEGATIVE_INFINITY;
-    float cutoff=sensors.startCodonSensor->getCutoff();
+    double altScore=NEGATIVE_INFINITY;
+    double cutoff=sensors.startCodonSensor->getCutoff();
     if(splicedAltPos>=0) {
       SignalSensor *sensor;
       altScore=startCodonScore(altRNA,splicedAltPos,sensor);
@@ -318,11 +318,12 @@ Essex::CompositeNode *OrfAnalyzer::lostUORFs(const GffTranscript &refTrans,
 	refWindow=splicedRefPos; 
 	altWindow=splicedAltPos; }
       String oldSignal=SignalPrinter::print(*sensor,refWindow,refRNA);
+      //cout<<splicedAltPos<<" "<<sensor->getSignalType()<<" "<<altWindow<<" "<<altRNA.length()<<endl;
       String newSignal=splicedAltPos>=0 ? 
 	SignalPrinter::print(*sensor,altWindow,altRNA) : "intronic";
       refNode->append(oldSignal); altNode->append(newSignal);
       altNode->append("threshold:");
-      altNode->append(float(sensor->getCutoff()));
+      altNode->append(double(sensor->getCutoff()));
       uORFnode->append(altNode);
       root->append(uORFnode);
     }

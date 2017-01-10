@@ -78,6 +78,17 @@ Strand LightEdge::getStrand() const
 
 
 
+String contentTypeString(ContentType type)
+{
+  switch(type) {
+  case INTERGENIC: return "intergenic";
+  case INTRON: return "intron";
+  case EXON: return "exon";
+  }
+  INTERNAL_ERROR;
+}
+
+
 void LightEdge::printOn(ostream &os)
 {
   int supportString=supported ? 1 : 0;
@@ -87,7 +98,7 @@ void LightEdge::printOn(ostream &os)
     for(int i=0 ; i<3 ; ++i)
       if(isFinite(score[i])) {
 	//if(needNewline) os<<endl;
-	os<<substrate<<"\tedge\t"<<contentTypeNiceString(type)<<"\t"<<begin+1
+	os<<substrate<<"\tedge\t"<<contentTypeString(type)<<"\t"<<begin+1
 	  <<"\t"<<end<<"\t"<<score[i]<<"\t"<<strand<<"\t"<<i
 	  <<"\tleft="<<left->getID()<<"; right="<<right->getID()
 	  <<"; edgeID="<<ID<<"; sup="<<supportString<<";"
@@ -96,7 +107,7 @@ void LightEdge::printOn(ostream &os)
       }
   }
   else
-    os<<substrate<<"\tedge\t"<<contentTypeNiceString(type)<<"\t"<<begin+1
+    os<<substrate<<"\tedge\t"<<contentTypeString(type)<<"\t"<<begin+1
       <<"\t"<<end<<"\t"<<score[0]<<"\t"<<strand<<"\t.\tleft="
       <<left->getID()<<"; right="<<right->getID()<<"; edgeID="<<ID<<";"
       <<" sup="<<supportString<<";"
@@ -222,6 +233,17 @@ bool LightEdge::isSupported() const
 void LightEdge::setSupport(bool s)
 {
   supported=s;
+}
+
+
+
+bool LightEdge::operator==(const LightEdge &other) const
+{
+    return substrate==other.substrate &&
+    strand==other.strand &&
+    begin==other.begin &&
+    end==other.end &&
+    type==other.type;
 }
 
 

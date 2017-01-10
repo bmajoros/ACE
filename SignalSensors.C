@@ -49,7 +49,12 @@ SignalSensor *SignalSensors::findSensor(SignalType type)
   case TAG: return stopCodonSensor;
   case GT:  return donorSensor;
   case AG:  return acceptorSensor;
+  case TSS: return NULL;
+  case TES: return NULL;
+  case LEFT_TERMINUS:   return NULL;
+  case RIGHT_TERMINUS:  return NULL;
   }
+  cout<<"No sensor found for signal type "<<signalTypeToString(type)<<endl;
   INTERNAL_ERROR;
 }
 

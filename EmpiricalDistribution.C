@@ -7,9 +7,11 @@
 
 #include "EmpiricalDistribution.H"
 #include "BOOM/Random.H"
+#include "BOOM/Constants.H"
 #include <math.h>
 #include <iostream>
 #include <fstream>
+using namespace BOOM;
 
 
 EmpiricalDistribution::EmpiricalDistribution(const BOOM::String &filename,
@@ -23,6 +25,15 @@ EmpiricalDistribution::EmpiricalDistribution(const BOOM::String &filename,
 
   smallestElemLogP=log(v[0]->second);
   largestElemLogP=log(v[v.size()-1]->second);
+
+  smallestValue=NEGATIVE_INFINITY;
+  for(Vector<EmpiricalDistributionElement*>::iterator cur=v.begin(),
+	end=v.end() ; cur!=end ; ++cur) {
+    EmpiricalDistributionElement *elem=*cur;
+    const double &value=elem->second;
+    if(value==0.0) continue;
+    if(!isFinite(smallestValue) || value<smallestValue) smallestValue=value;
+  }
 }
 
 
@@ -100,7 +111,10 @@ double EmpiricalDistribution::getLogP(unsigned x)
   EmpiricalDistributionElement &elem=*v[index];
   unsigned foundX=elem.first, x1, x2;
   double foundY=elem.second, y1, y2;
-  if(x==foundX) return log(foundY); // ### this log could be cached
+  if(x==foundX) {
+    if(foundY==0.0) return log(smallestValue/2);
+    return log(foundY); // ### this log could be cached
+  }
 
   if(useInterpolation)
     {
@@ -124,9 +138,13 @@ double EmpiricalDistribution::getLogP(unsigned x)
 	  y2=nextElem.second;
 	}
       double y=interpolate(x1,y1,x2,y2,x);
+      if(y==0.0) return log(smallestValue/2);
       return log(y);
     }
-  else return log(foundY);
+  else {
+    if(foundY==0.0) return log(smallestValue/2);
+    return log(foundY);
+  }
 }
 
 

@@ -14,22 +14,17 @@ LIBS		= -lpthread  -lgsl -lm -lgslcblas -LBOOM -lBOOM
 
 
 all: \
-	BOOM/libBOOM.a \
+	BOOM \
 	obj \
 	train-signal-sensor \
 	vcf-to-tvf \
 	tvf-to-fasta \
 	ace \
 	subset-vcf-by-sample \
-	map-annotations \
-	permissions
+	map-annotations
 
-permissions:
-	chmod a+x *.pl ; chmod a+x perl/*.pl
-
-BOOM/libBOOM.a:
-	cd BOOM ; make all ; cd -
-#	ln -s ../BOOM
+BOOM:
+	ln -s ../BOOM
 
 obj: 
 	mkdir obj
@@ -2449,6 +2444,7 @@ $(OBJ)/ace.o:\
 		ace.C
 #---------------------------------------------------------
 ace: \
+		$(OBJ)/ACE.o \
 		$(OBJ)/SignalPrinter.o \
 		$(OBJ)/OrfAnalyzer.o \
 		$(OBJ)/VariantClassifier.o \
@@ -2510,6 +2506,133 @@ ace: \
 		$(OBJ)/ProjectionChecker.o \
 		$(OBJ)/ace.o
 	$(CC) $(LDFLAGS) -o ace \
+		$(OBJ)/ACE.o \
+		$(OBJ)/SignalPrinter.o \
+		$(OBJ)/OrfAnalyzer.o \
+		$(OBJ)/VariantClassifier.o \
+		$(OBJ)/StartCodonFinder.o \
+		$(OBJ)/SignalSensors.o \
+		$(OBJ)/StructureChange.o \
+		$(OBJ)/NMD.o \
+		$(OBJ)/TranscriptSignals.o \
+		$(OBJ)/EnumerateAltStructures.o \
+		$(OBJ)/VirtualSignalSensor.o \
+		$(OBJ)/EvidenceFilter.o \
+		$(OBJ)/RnaJunction.o \
+		$(OBJ)/RnaJunctions.o \
+		$(OBJ)/ParseGraph.o \
+		$(OBJ)/GffPathFromParseGraph.o \
+		$(OBJ)/SignalComparator.o \
+		$(OBJ)/NthOrderStringIterator.o \
+		$(OBJ)/TrainingSequence.o \
+		$(OBJ)/SignalPeptideSensor.o \
+		$(OBJ)/CodonTree.o \
+		$(OBJ)/Isochore.o \
+		$(OBJ)/IsochoreTable.o \
+		$(OBJ)/BranchAcceptor.o \
+		$(OBJ)/ThreePeriodicIMM.o \
+		$(OBJ)/IMM.o \
+		$(OBJ)/EdgeFactory.o \
+		$(OBJ)/MddTree.o \
+		$(OBJ)/Partition.o \
+		$(OBJ)/TreeNode.o \
+		$(OBJ)/GarbageCollector.o \
+		$(OBJ)/Edge.o \
+		$(OBJ)/TopologyLoader.o \
+		$(OBJ)/WAM.o \
+		$(OBJ)/WWAM.o \
+		$(OBJ)/MarkovChainCompiler.o \
+		$(OBJ)/Fast3PMC.o \
+		$(OBJ)/FastMarkovChain.o \
+		$(OBJ)/ThreePeriodicMarkovChain.o \
+		$(OBJ)/DiscreteDistribution.o \
+		$(OBJ)/Transitions.o \
+		$(OBJ)/EmpiricalDistribution.o \
+		$(OBJ)/GeometricDistribution.o \
+		$(OBJ)/NoncodingQueue.o \
+		$(OBJ)/IntronQueue.o \
+		$(OBJ)/SignalType.o \
+		$(OBJ)/ContentType.o \
+		$(OBJ)/ModelBuilder.o \
+		$(OBJ)/ScoreAnalyzer.o \
+		$(OBJ)/ContentSensor.o \
+		$(OBJ)/MarkovChain.o \
+		$(OBJ)/WMM.o \
+		$(OBJ)/SignalQueue.o \
+		$(OBJ)/SignalSensor.o \
+		$(OBJ)/Propagator.o \
+		$(OBJ)/Signal.o \
+		$(OBJ)/SignalTypeProperties.o \
+		$(OBJ)/GZilla.o \
+		$(OBJ)/Labeling.o \
+		$(OBJ)/ProjectionChecker.o \
+		$(OBJ)/ace.o \
+		$(LIBS)
+#---------------------------------------------------------
+ace-test: \
+		$(OBJ)/ACE.o \
+		$(OBJ)/SignalPrinter.o \
+		$(OBJ)/OrfAnalyzer.o \
+		$(OBJ)/VariantClassifier.o \
+		$(OBJ)/StartCodonFinder.o \
+		$(OBJ)/SignalSensors.o \
+		$(OBJ)/StructureChange.o \
+		$(OBJ)/NMD.o \
+		$(OBJ)/TranscriptSignals.o \
+		$(OBJ)/EnumerateAltStructures.o \
+		$(OBJ)/VirtualSignalSensor.o \
+		$(OBJ)/EvidenceFilter.o \
+		$(OBJ)/RnaJunction.o \
+		$(OBJ)/RnaJunctions.o \
+		$(OBJ)/ParseGraph.o \
+		$(OBJ)/GffPathFromParseGraph.o \
+		$(OBJ)/SignalComparator.o \
+		$(OBJ)/NthOrderStringIterator.o \
+		$(OBJ)/TrainingSequence.o \
+		$(OBJ)/SignalPeptideSensor.o \
+		$(OBJ)/CodonTree.o \
+		$(OBJ)/Isochore.o \
+		$(OBJ)/IsochoreTable.o \
+		$(OBJ)/BranchAcceptor.o \
+		$(OBJ)/ThreePeriodicIMM.o \
+		$(OBJ)/IMM.o \
+		$(OBJ)/EdgeFactory.o \
+		$(OBJ)/MddTree.o \
+		$(OBJ)/Partition.o \
+		$(OBJ)/TreeNode.o \
+		$(OBJ)/GarbageCollector.o \
+		$(OBJ)/Edge.o \
+		$(OBJ)/TopologyLoader.o \
+		$(OBJ)/WAM.o \
+		$(OBJ)/WWAM.o \
+		$(OBJ)/MarkovChainCompiler.o \
+		$(OBJ)/Fast3PMC.o \
+		$(OBJ)/FastMarkovChain.o \
+		$(OBJ)/ThreePeriodicMarkovChain.o \
+		$(OBJ)/DiscreteDistribution.o \
+		$(OBJ)/Transitions.o \
+		$(OBJ)/EmpiricalDistribution.o \
+		$(OBJ)/GeometricDistribution.o \
+		$(OBJ)/NoncodingQueue.o \
+		$(OBJ)/IntronQueue.o \
+		$(OBJ)/SignalType.o \
+		$(OBJ)/ContentType.o \
+		$(OBJ)/ModelBuilder.o \
+		$(OBJ)/ScoreAnalyzer.o \
+		$(OBJ)/ContentSensor.o \
+		$(OBJ)/MarkovChain.o \
+		$(OBJ)/WMM.o \
+		$(OBJ)/SignalQueue.o \
+		$(OBJ)/SignalSensor.o \
+		$(OBJ)/Propagator.o \
+		$(OBJ)/Signal.o \
+		$(OBJ)/SignalTypeProperties.o \
+		$(OBJ)/GZilla.o \
+		$(OBJ)/Labeling.o \
+		$(OBJ)/ProjectionChecker.o \
+		$(OBJ)/ace.o
+	$(CC) $(LDFLAGS) -o ace-test \
+		$(OBJ)/ACE.o \
 		$(OBJ)/SignalPrinter.o \
 		$(OBJ)/OrfAnalyzer.o \
 		$(OBJ)/VariantClassifier.o \
@@ -2577,253 +2700,6 @@ $(OBJ)/ace-random.o:\
 	$(CC) $(CFLAGS) -o $(OBJ)/ace-random.o -c \
 		ace-random.C
 #---------------------------------------------------------
-ace-random: \
-		$(OBJ)/SignalPrinter.o \
-		$(OBJ)/OrfAnalyzer.o \
-		$(OBJ)/VariantClassifier.o \
-		$(OBJ)/StartCodonFinder.o \
-		$(OBJ)/SignalSensors.o \
-		$(OBJ)/StructureChange.o \
-		$(OBJ)/NMD.o \
-		$(OBJ)/TranscriptSignals.o \
-		$(OBJ)/EnumerateAltStructures.o \
-		$(OBJ)/VirtualSignalSensor.o \
-		$(OBJ)/EvidenceFilter.o \
-		$(OBJ)/RnaJunction.o \
-		$(OBJ)/RnaJunctions.o \
-		$(OBJ)/ParseGraph.o \
-		$(OBJ)/GffPathFromParseGraph.o \
-		$(OBJ)/SignalComparator.o \
-		$(OBJ)/NthOrderStringIterator.o \
-		$(OBJ)/TrainingSequence.o \
-		$(OBJ)/SignalPeptideSensor.o \
-		$(OBJ)/CodonTree.o \
-		$(OBJ)/Isochore.o \
-		$(OBJ)/IsochoreTable.o \
-		$(OBJ)/BranchAcceptor.o \
-		$(OBJ)/ThreePeriodicIMM.o \
-		$(OBJ)/IMM.o \
-		$(OBJ)/EdgeFactory.o \
-		$(OBJ)/MddTree.o \
-		$(OBJ)/Partition.o \
-		$(OBJ)/TreeNode.o \
-		$(OBJ)/GarbageCollector.o \
-		$(OBJ)/Edge.o \
-		$(OBJ)/TopologyLoader.o \
-		$(OBJ)/WAM.o \
-		$(OBJ)/WWAM.o \
-		$(OBJ)/MarkovChainCompiler.o \
-		$(OBJ)/Fast3PMC.o \
-		$(OBJ)/FastMarkovChain.o \
-		$(OBJ)/ThreePeriodicMarkovChain.o \
-		$(OBJ)/DiscreteDistribution.o \
-		$(OBJ)/Transitions.o \
-		$(OBJ)/EmpiricalDistribution.o \
-		$(OBJ)/GeometricDistribution.o \
-		$(OBJ)/NoncodingQueue.o \
-		$(OBJ)/IntronQueue.o \
-		$(OBJ)/SignalType.o \
-		$(OBJ)/ContentType.o \
-		$(OBJ)/ModelBuilder.o \
-		$(OBJ)/ScoreAnalyzer.o \
-		$(OBJ)/ContentSensor.o \
-		$(OBJ)/MarkovChain.o \
-		$(OBJ)/WMM.o \
-		$(OBJ)/SignalQueue.o \
-		$(OBJ)/SignalSensor.o \
-		$(OBJ)/Propagator.o \
-		$(OBJ)/Signal.o \
-		$(OBJ)/SignalTypeProperties.o \
-		$(OBJ)/GZilla.o \
-		$(OBJ)/Labeling.o \
-		$(OBJ)/ProjectionChecker.o \
-		$(OBJ)/ace-random.o
-	$(CC) $(LDFLAGS) -o ace-random \
-		$(OBJ)/SignalPrinter.o \
-		$(OBJ)/OrfAnalyzer.o \
-		$(OBJ)/VariantClassifier.o \
-		$(OBJ)/StartCodonFinder.o \
-		$(OBJ)/SignalSensors.o \
-		$(OBJ)/StructureChange.o \
-		$(OBJ)/NMD.o \
-		$(OBJ)/TranscriptSignals.o \
-		$(OBJ)/EnumerateAltStructures.o \
-		$(OBJ)/VirtualSignalSensor.o \
-		$(OBJ)/EvidenceFilter.o \
-		$(OBJ)/RnaJunction.o \
-		$(OBJ)/RnaJunctions.o \
-		$(OBJ)/ParseGraph.o \
-		$(OBJ)/GffPathFromParseGraph.o \
-		$(OBJ)/SignalComparator.o \
-		$(OBJ)/NthOrderStringIterator.o \
-		$(OBJ)/TrainingSequence.o \
-		$(OBJ)/SignalPeptideSensor.o \
-		$(OBJ)/CodonTree.o \
-		$(OBJ)/Isochore.o \
-		$(OBJ)/IsochoreTable.o \
-		$(OBJ)/BranchAcceptor.o \
-		$(OBJ)/ThreePeriodicIMM.o \
-		$(OBJ)/IMM.o \
-		$(OBJ)/EdgeFactory.o \
-		$(OBJ)/MddTree.o \
-		$(OBJ)/Partition.o \
-		$(OBJ)/TreeNode.o \
-		$(OBJ)/GarbageCollector.o \
-		$(OBJ)/Edge.o \
-		$(OBJ)/TopologyLoader.o \
-		$(OBJ)/WAM.o \
-		$(OBJ)/WWAM.o \
-		$(OBJ)/MarkovChainCompiler.o \
-		$(OBJ)/Fast3PMC.o \
-		$(OBJ)/FastMarkovChain.o \
-		$(OBJ)/ThreePeriodicMarkovChain.o \
-		$(OBJ)/DiscreteDistribution.o \
-		$(OBJ)/Transitions.o \
-		$(OBJ)/EmpiricalDistribution.o \
-		$(OBJ)/GeometricDistribution.o \
-		$(OBJ)/NoncodingQueue.o \
-		$(OBJ)/IntronQueue.o \
-		$(OBJ)/SignalType.o \
-		$(OBJ)/ContentType.o \
-		$(OBJ)/ModelBuilder.o \
-		$(OBJ)/ScoreAnalyzer.o \
-		$(OBJ)/ContentSensor.o \
-		$(OBJ)/MarkovChain.o \
-		$(OBJ)/WMM.o \
-		$(OBJ)/SignalQueue.o \
-		$(OBJ)/SignalSensor.o \
-		$(OBJ)/Propagator.o \
-		$(OBJ)/Signal.o \
-		$(OBJ)/SignalTypeProperties.o \
-		$(OBJ)/GZilla.o \
-		$(OBJ)/Labeling.o \
-		$(OBJ)/ProjectionChecker.o \
-		$(OBJ)/ace-random.o \
-		$(LIBS)
-#---------------------------------------------------------
-ace-test: \
-		$(OBJ)/SignalPrinter.o \
-		$(OBJ)/OrfAnalyzer.o \
-		$(OBJ)/VariantClassifier.o \
-		$(OBJ)/StartCodonFinder.o \
-		$(OBJ)/SignalSensors.o \
-		$(OBJ)/StructureChange.o \
-		$(OBJ)/NMD.o \
-		$(OBJ)/TranscriptSignals.o \
-		$(OBJ)/EnumerateAltStructures.o \
-		$(OBJ)/VirtualSignalSensor.o \
-		$(OBJ)/EvidenceFilter.o \
-		$(OBJ)/RnaJunction.o \
-		$(OBJ)/RnaJunctions.o \
-		$(OBJ)/ParseGraph.o \
-		$(OBJ)/GffPathFromParseGraph.o \
-		$(OBJ)/SignalComparator.o \
-		$(OBJ)/NthOrderStringIterator.o \
-		$(OBJ)/TrainingSequence.o \
-		$(OBJ)/SignalPeptideSensor.o \
-		$(OBJ)/CodonTree.o \
-		$(OBJ)/Isochore.o \
-		$(OBJ)/IsochoreTable.o \
-		$(OBJ)/BranchAcceptor.o \
-		$(OBJ)/ThreePeriodicIMM.o \
-		$(OBJ)/IMM.o \
-		$(OBJ)/EdgeFactory.o \
-		$(OBJ)/MddTree.o \
-		$(OBJ)/Partition.o \
-		$(OBJ)/TreeNode.o \
-		$(OBJ)/GarbageCollector.o \
-		$(OBJ)/Edge.o \
-		$(OBJ)/TopologyLoader.o \
-		$(OBJ)/WAM.o \
-		$(OBJ)/WWAM.o \
-		$(OBJ)/MarkovChainCompiler.o \
-		$(OBJ)/Fast3PMC.o \
-		$(OBJ)/FastMarkovChain.o \
-		$(OBJ)/ThreePeriodicMarkovChain.o \
-		$(OBJ)/DiscreteDistribution.o \
-		$(OBJ)/Transitions.o \
-		$(OBJ)/EmpiricalDistribution.o \
-		$(OBJ)/GeometricDistribution.o \
-		$(OBJ)/NoncodingQueue.o \
-		$(OBJ)/IntronQueue.o \
-		$(OBJ)/SignalType.o \
-		$(OBJ)/ContentType.o \
-		$(OBJ)/ModelBuilder.o \
-		$(OBJ)/ScoreAnalyzer.o \
-		$(OBJ)/ContentSensor.o \
-		$(OBJ)/MarkovChain.o \
-		$(OBJ)/WMM.o \
-		$(OBJ)/SignalQueue.o \
-		$(OBJ)/SignalSensor.o \
-		$(OBJ)/Propagator.o \
-		$(OBJ)/Signal.o \
-		$(OBJ)/SignalTypeProperties.o \
-		$(OBJ)/GZilla.o \
-		$(OBJ)/Labeling.o \
-		$(OBJ)/ProjectionChecker.o \
-		$(OBJ)/ace.o
-	$(CC) $(LDFLAGS) -o ace-test \
-		$(OBJ)/SignalPrinter.o \
-		$(OBJ)/OrfAnalyzer.o \
-		$(OBJ)/VariantClassifier.o \
-		$(OBJ)/StartCodonFinder.o \
-		$(OBJ)/SignalSensors.o \
-		$(OBJ)/StructureChange.o \
-		$(OBJ)/NMD.o \
-		$(OBJ)/TranscriptSignals.o \
-		$(OBJ)/EnumerateAltStructures.o \
-		$(OBJ)/VirtualSignalSensor.o \
-		$(OBJ)/EvidenceFilter.o \
-		$(OBJ)/RnaJunction.o \
-		$(OBJ)/RnaJunctions.o \
-		$(OBJ)/ParseGraph.o \
-		$(OBJ)/GffPathFromParseGraph.o \
-		$(OBJ)/SignalComparator.o \
-		$(OBJ)/NthOrderStringIterator.o \
-		$(OBJ)/TrainingSequence.o \
-		$(OBJ)/SignalPeptideSensor.o \
-		$(OBJ)/CodonTree.o \
-		$(OBJ)/Isochore.o \
-		$(OBJ)/IsochoreTable.o \
-		$(OBJ)/BranchAcceptor.o \
-		$(OBJ)/ThreePeriodicIMM.o \
-		$(OBJ)/IMM.o \
-		$(OBJ)/EdgeFactory.o \
-		$(OBJ)/MddTree.o \
-		$(OBJ)/Partition.o \
-		$(OBJ)/TreeNode.o \
-		$(OBJ)/GarbageCollector.o \
-		$(OBJ)/Edge.o \
-		$(OBJ)/TopologyLoader.o \
-		$(OBJ)/WAM.o \
-		$(OBJ)/WWAM.o \
-		$(OBJ)/MarkovChainCompiler.o \
-		$(OBJ)/Fast3PMC.o \
-		$(OBJ)/FastMarkovChain.o \
-		$(OBJ)/ThreePeriodicMarkovChain.o \
-		$(OBJ)/DiscreteDistribution.o \
-		$(OBJ)/Transitions.o \
-		$(OBJ)/EmpiricalDistribution.o \
-		$(OBJ)/GeometricDistribution.o \
-		$(OBJ)/NoncodingQueue.o \
-		$(OBJ)/IntronQueue.o \
-		$(OBJ)/SignalType.o \
-		$(OBJ)/ContentType.o \
-		$(OBJ)/ModelBuilder.o \
-		$(OBJ)/ScoreAnalyzer.o \
-		$(OBJ)/ContentSensor.o \
-		$(OBJ)/MarkovChain.o \
-		$(OBJ)/WMM.o \
-		$(OBJ)/SignalQueue.o \
-		$(OBJ)/SignalSensor.o \
-		$(OBJ)/Propagator.o \
-		$(OBJ)/Signal.o \
-		$(OBJ)/SignalTypeProperties.o \
-		$(OBJ)/GZilla.o \
-		$(OBJ)/Labeling.o \
-		$(OBJ)/ProjectionChecker.o \
-		$(OBJ)/ace.o \
-		$(LIBS)
 #---------------------------------------------------------
 $(OBJ)/ProjectionChecker.o:\
 		ProjectionChecker.C\
@@ -3466,3 +3342,380 @@ $(OBJ)/EnumerateAltStructures_Sim.o:\
 	$(CC) $(CFLAGS) -o $(OBJ)/EnumerateAltStructures_Sim.o -c \
 		EnumerateAltStructures_Sim.C
 #---------------------------------------------------------
+
+#---------------------------------------------------------
+$(OBJ)/ACE.o:\
+		ACE.C\
+		ACE.H
+	$(CC) $(CFLAGS) -o $(OBJ)/ACE.o -c \
+		ACE.C
+#--------------------------------------------------------
+$(OBJ)/ACEplus.o:\
+		ACEplus.C\
+		ACEplus.H
+	$(CC) $(CFLAGS) -o $(OBJ)/ACEplus.o -c \
+		ACEplus.C
+#---------------------------------------------------------
+$(OBJ)/ContentSensors.o:\
+		ContentSensors.C\
+		ContentSensors.H
+	$(CC) $(CFLAGS) -o $(OBJ)/ContentSensors.o -c \
+		ContentSensors.C
+#--------------------------------------------------------
+$(OBJ)/aceplus.o:\
+		aceplus.C
+	$(CC) $(CFLAGS) -o $(OBJ)/aceplus.o -c \
+		aceplus.C
+#--------------------------------------------------------
+$(OBJ)/PrefixSumArray.o:\
+		PrefixSumArray.C\
+		PrefixSumArray.H
+	$(CC) $(CFLAGS) -o $(OBJ)/PrefixSumArray.o -c \
+		PrefixSumArray.C
+#--------------------------------------------------------
+$(OBJ)/GraphBuilder.o:\
+		GraphBuilder.C\
+		GraphBuilder.H
+	$(CC) $(CFLAGS) -o $(OBJ)/GraphBuilder.o -c \
+		GraphBuilder.C
+#--------------------------------------------------------
+$(OBJ)/Model.o:\
+		Model.C\
+		Model.H
+	$(CC) $(CFLAGS) -o $(OBJ)/Model.o -c \
+		Model.C
+#---------------------------------------------------------
+$(OBJ)/TranscriptPath.o:\
+		TranscriptPath.C\
+		TranscriptPath.H
+	$(CC) $(CFLAGS) -o $(OBJ)/TranscriptPath.o -c \
+		TranscriptPath.C
+#---------------------------------------------------------
+$(OBJ)/TranscriptPaths.o:\
+		TranscriptPaths.C\
+		TranscriptPaths.H
+	$(CC) $(CFLAGS) -o $(OBJ)/TranscriptPaths.o -c \
+		TranscriptPaths.C
+#---------------------------------------------------------
+$(OBJ)/ACEplus_Edge.o:\
+		ACEplus_Edge.C\
+		ACEplus_Edge.H
+	$(CC) $(CFLAGS) -o $(OBJ)/ACEplus_Edge.o -c \
+		ACEplus_Edge.C
+#---------------------------------------------------------
+$(OBJ)/ACEplus_Vertex.o:\
+		ACEplus_Vertex.C\
+		ACEplus_Vertex.H
+	$(CC) $(CFLAGS) -o $(OBJ)/ACEplus_Vertex.o -c \
+		ACEplus_Vertex.C
+#---------------------------------------------------------
+aceplus: \
+		$(OBJ)/ACEplus_Vertex.o \
+		$(OBJ)/ACEplus_Edge.o \
+		$(OBJ)/TranscriptPath.o \
+		$(OBJ)/TranscriptPaths.o \
+		$(OBJ)/Model.o \
+		$(OBJ)/GraphBuilder.o \
+		$(OBJ)/LightVertex.o \
+		$(OBJ)/LightEdge.o \
+		$(OBJ)/LightGraph.o \
+		$(OBJ)/ACE.o \
+		$(OBJ)/ACEplus.o \
+		$(OBJ)/PrefixSumArray.o \
+		$(OBJ)/SignalPrinter.o \
+		$(OBJ)/OrfAnalyzer.o \
+		$(OBJ)/VariantClassifier.o \
+		$(OBJ)/StartCodonFinder.o \
+		$(OBJ)/SignalSensors.o \
+		$(OBJ)/ContentSensors.o \
+		$(OBJ)/StructureChange.o \
+		$(OBJ)/NMD.o \
+		$(OBJ)/TranscriptSignals.o \
+		$(OBJ)/EnumerateAltStructures.o \
+		$(OBJ)/VirtualSignalSensor.o \
+		$(OBJ)/EvidenceFilter.o \
+		$(OBJ)/RnaJunction.o \
+		$(OBJ)/RnaJunctions.o \
+		$(OBJ)/ParseGraph.o \
+		$(OBJ)/GffPathFromParseGraph.o \
+		$(OBJ)/SignalComparator.o \
+		$(OBJ)/NthOrderStringIterator.o \
+		$(OBJ)/TrainingSequence.o \
+		$(OBJ)/SignalPeptideSensor.o \
+		$(OBJ)/CodonTree.o \
+		$(OBJ)/Isochore.o \
+		$(OBJ)/IsochoreTable.o \
+		$(OBJ)/BranchAcceptor.o \
+		$(OBJ)/ThreePeriodicIMM.o \
+		$(OBJ)/IMM.o \
+		$(OBJ)/EdgeFactory.o \
+		$(OBJ)/MddTree.o \
+		$(OBJ)/Partition.o \
+		$(OBJ)/TreeNode.o \
+		$(OBJ)/GarbageCollector.o \
+		$(OBJ)/Edge.o \
+		$(OBJ)/TopologyLoader.o \
+		$(OBJ)/WAM.o \
+		$(OBJ)/WWAM.o \
+		$(OBJ)/MarkovChainCompiler.o \
+		$(OBJ)/Fast3PMC.o \
+		$(OBJ)/FastMarkovChain.o \
+		$(OBJ)/ThreePeriodicMarkovChain.o \
+		$(OBJ)/DiscreteDistribution.o \
+		$(OBJ)/Transitions.o \
+		$(OBJ)/EmpiricalDistribution.o \
+		$(OBJ)/GeometricDistribution.o \
+		$(OBJ)/NoncodingQueue.o \
+		$(OBJ)/IntronQueue.o \
+		$(OBJ)/SignalType.o \
+		$(OBJ)/ContentType.o \
+		$(OBJ)/ModelBuilder.o \
+		$(OBJ)/ScoreAnalyzer.o \
+		$(OBJ)/ContentSensor.o \
+		$(OBJ)/MarkovChain.o \
+		$(OBJ)/WMM.o \
+		$(OBJ)/SignalQueue.o \
+		$(OBJ)/SignalSensor.o \
+		$(OBJ)/Propagator.o \
+		$(OBJ)/Signal.o \
+		$(OBJ)/SignalTypeProperties.o \
+		$(OBJ)/GZilla.o \
+		$(OBJ)/Labeling.o \
+		$(OBJ)/ProjectionChecker.o \
+		$(OBJ)/aceplus.o
+	$(CC) $(LDFLAGS) -o aceplus \
+		$(OBJ)/ACEplus_Vertex.o \
+		$(OBJ)/ACEplus_Edge.o \
+		$(OBJ)/TranscriptPath.o \
+		$(OBJ)/TranscriptPaths.o \
+		$(OBJ)/Model.o \
+		$(OBJ)/GraphBuilder.o \
+		$(OBJ)/LightVertex.o \
+		$(OBJ)/LightEdge.o \
+		$(OBJ)/LightGraph.o \
+		$(OBJ)/ACE.o \
+		$(OBJ)/ACEplus.o \
+		$(OBJ)/PrefixSumArray.o \
+		$(OBJ)/SignalPrinter.o \
+		$(OBJ)/OrfAnalyzer.o \
+		$(OBJ)/VariantClassifier.o \
+		$(OBJ)/StartCodonFinder.o \
+		$(OBJ)/SignalSensors.o \
+		$(OBJ)/ContentSensors.o \
+		$(OBJ)/StructureChange.o \
+		$(OBJ)/NMD.o \
+		$(OBJ)/TranscriptSignals.o \
+		$(OBJ)/EnumerateAltStructures.o \
+		$(OBJ)/VirtualSignalSensor.o \
+		$(OBJ)/EvidenceFilter.o \
+		$(OBJ)/RnaJunction.o \
+		$(OBJ)/RnaJunctions.o \
+		$(OBJ)/ParseGraph.o \
+		$(OBJ)/GffPathFromParseGraph.o \
+		$(OBJ)/SignalComparator.o \
+		$(OBJ)/NthOrderStringIterator.o \
+		$(OBJ)/TrainingSequence.o \
+		$(OBJ)/SignalPeptideSensor.o \
+		$(OBJ)/CodonTree.o \
+		$(OBJ)/Isochore.o \
+		$(OBJ)/IsochoreTable.o \
+		$(OBJ)/BranchAcceptor.o \
+		$(OBJ)/ThreePeriodicIMM.o \
+		$(OBJ)/IMM.o \
+		$(OBJ)/EdgeFactory.o \
+		$(OBJ)/MddTree.o \
+		$(OBJ)/Partition.o \
+		$(OBJ)/TreeNode.o \
+		$(OBJ)/GarbageCollector.o \
+		$(OBJ)/Edge.o \
+		$(OBJ)/TopologyLoader.o \
+		$(OBJ)/WAM.o \
+		$(OBJ)/WWAM.o \
+		$(OBJ)/MarkovChainCompiler.o \
+		$(OBJ)/Fast3PMC.o \
+		$(OBJ)/FastMarkovChain.o \
+		$(OBJ)/ThreePeriodicMarkovChain.o \
+		$(OBJ)/DiscreteDistribution.o \
+		$(OBJ)/Transitions.o \
+		$(OBJ)/EmpiricalDistribution.o \
+		$(OBJ)/GeometricDistribution.o \
+		$(OBJ)/NoncodingQueue.o \
+		$(OBJ)/IntronQueue.o \
+		$(OBJ)/SignalType.o \
+		$(OBJ)/ContentType.o \
+		$(OBJ)/ModelBuilder.o \
+		$(OBJ)/ScoreAnalyzer.o \
+		$(OBJ)/ContentSensor.o \
+		$(OBJ)/MarkovChain.o \
+		$(OBJ)/WMM.o \
+		$(OBJ)/SignalQueue.o \
+		$(OBJ)/SignalSensor.o \
+		$(OBJ)/Propagator.o \
+		$(OBJ)/Signal.o \
+		$(OBJ)/SignalTypeProperties.o \
+		$(OBJ)/GZilla.o \
+		$(OBJ)/Labeling.o \
+		$(OBJ)/ProjectionChecker.o \
+		$(OBJ)/aceplus.o \
+		$(LIBS)
+#---------------------------------------------------------
+#---------------------------------------------------------
+aceplus-test: \
+		$(OBJ)/ACEplus_Vertex.o \
+		$(OBJ)/ACEplus_Edge.o \
+		$(OBJ)/TranscriptPath.o \
+		$(OBJ)/TranscriptPaths.o \
+		$(OBJ)/Model.o \
+		$(OBJ)/GraphBuilder.o \
+		$(OBJ)/LightVertex.o \
+		$(OBJ)/LightEdge.o \
+		$(OBJ)/LightGraph.o \
+		$(OBJ)/ACE.o \
+		$(OBJ)/ACEplus.o \
+		$(OBJ)/PrefixSumArray.o \
+		$(OBJ)/SignalPrinter.o \
+		$(OBJ)/OrfAnalyzer.o \
+		$(OBJ)/VariantClassifier.o \
+		$(OBJ)/StartCodonFinder.o \
+		$(OBJ)/SignalSensors.o \
+		$(OBJ)/ContentSensors.o \
+		$(OBJ)/StructureChange.o \
+		$(OBJ)/NMD.o \
+		$(OBJ)/TranscriptSignals.o \
+		$(OBJ)/EnumerateAltStructures.o \
+		$(OBJ)/VirtualSignalSensor.o \
+		$(OBJ)/EvidenceFilter.o \
+		$(OBJ)/RnaJunction.o \
+		$(OBJ)/RnaJunctions.o \
+		$(OBJ)/ParseGraph.o \
+		$(OBJ)/GffPathFromParseGraph.o \
+		$(OBJ)/SignalComparator.o \
+		$(OBJ)/NthOrderStringIterator.o \
+		$(OBJ)/TrainingSequence.o \
+		$(OBJ)/SignalPeptideSensor.o \
+		$(OBJ)/CodonTree.o \
+		$(OBJ)/Isochore.o \
+		$(OBJ)/IsochoreTable.o \
+		$(OBJ)/BranchAcceptor.o \
+		$(OBJ)/ThreePeriodicIMM.o \
+		$(OBJ)/IMM.o \
+		$(OBJ)/EdgeFactory.o \
+		$(OBJ)/MddTree.o \
+		$(OBJ)/Partition.o \
+		$(OBJ)/TreeNode.o \
+		$(OBJ)/GarbageCollector.o \
+		$(OBJ)/Edge.o \
+		$(OBJ)/TopologyLoader.o \
+		$(OBJ)/WAM.o \
+		$(OBJ)/WWAM.o \
+		$(OBJ)/MarkovChainCompiler.o \
+		$(OBJ)/Fast3PMC.o \
+		$(OBJ)/FastMarkovChain.o \
+		$(OBJ)/ThreePeriodicMarkovChain.o \
+		$(OBJ)/DiscreteDistribution.o \
+		$(OBJ)/Transitions.o \
+		$(OBJ)/EmpiricalDistribution.o \
+		$(OBJ)/GeometricDistribution.o \
+		$(OBJ)/NoncodingQueue.o \
+		$(OBJ)/IntronQueue.o \
+		$(OBJ)/SignalType.o \
+		$(OBJ)/ContentType.o \
+		$(OBJ)/ModelBuilder.o \
+		$(OBJ)/ScoreAnalyzer.o \
+		$(OBJ)/ContentSensor.o \
+		$(OBJ)/MarkovChain.o \
+		$(OBJ)/WMM.o \
+		$(OBJ)/SignalQueue.o \
+		$(OBJ)/SignalSensor.o \
+		$(OBJ)/Propagator.o \
+		$(OBJ)/Signal.o \
+		$(OBJ)/SignalTypeProperties.o \
+		$(OBJ)/GZilla.o \
+		$(OBJ)/Labeling.o \
+		$(OBJ)/ProjectionChecker.o \
+		$(OBJ)/aceplus.o
+	$(CC) $(LDFLAGS) -o aceplus-test \
+		$(OBJ)/ACEplus_Vertex.o \
+		$(OBJ)/ACEplus_Edge.o \
+		$(OBJ)/TranscriptPath.o \
+		$(OBJ)/TranscriptPaths.o \
+		$(OBJ)/Model.o \
+		$(OBJ)/GraphBuilder.o \
+		$(OBJ)/LightVertex.o \
+		$(OBJ)/LightEdge.o \
+		$(OBJ)/LightGraph.o \
+		$(OBJ)/ACE.o \
+		$(OBJ)/ACEplus.o \
+		$(OBJ)/PrefixSumArray.o \
+		$(OBJ)/SignalPrinter.o \
+		$(OBJ)/OrfAnalyzer.o \
+		$(OBJ)/VariantClassifier.o \
+		$(OBJ)/StartCodonFinder.o \
+		$(OBJ)/SignalSensors.o \
+		$(OBJ)/ContentSensors.o \
+		$(OBJ)/StructureChange.o \
+		$(OBJ)/NMD.o \
+		$(OBJ)/TranscriptSignals.o \
+		$(OBJ)/EnumerateAltStructures.o \
+		$(OBJ)/VirtualSignalSensor.o \
+		$(OBJ)/EvidenceFilter.o \
+		$(OBJ)/RnaJunction.o \
+		$(OBJ)/RnaJunctions.o \
+		$(OBJ)/ParseGraph.o \
+		$(OBJ)/GffPathFromParseGraph.o \
+		$(OBJ)/SignalComparator.o \
+		$(OBJ)/NthOrderStringIterator.o \
+		$(OBJ)/TrainingSequence.o \
+		$(OBJ)/SignalPeptideSensor.o \
+		$(OBJ)/CodonTree.o \
+		$(OBJ)/Isochore.o \
+		$(OBJ)/IsochoreTable.o \
+		$(OBJ)/BranchAcceptor.o \
+		$(OBJ)/ThreePeriodicIMM.o \
+		$(OBJ)/IMM.o \
+		$(OBJ)/EdgeFactory.o \
+		$(OBJ)/MddTree.o \
+		$(OBJ)/Partition.o \
+		$(OBJ)/TreeNode.o \
+		$(OBJ)/GarbageCollector.o \
+		$(OBJ)/Edge.o \
+		$(OBJ)/TopologyLoader.o \
+		$(OBJ)/WAM.o \
+		$(OBJ)/WWAM.o \
+		$(OBJ)/MarkovChainCompiler.o \
+		$(OBJ)/Fast3PMC.o \
+		$(OBJ)/FastMarkovChain.o \
+		$(OBJ)/ThreePeriodicMarkovChain.o \
+		$(OBJ)/DiscreteDistribution.o \
+		$(OBJ)/Transitions.o \
+		$(OBJ)/EmpiricalDistribution.o \
+		$(OBJ)/GeometricDistribution.o \
+		$(OBJ)/NoncodingQueue.o \
+		$(OBJ)/IntronQueue.o \
+		$(OBJ)/SignalType.o \
+		$(OBJ)/ContentType.o \
+		$(OBJ)/ModelBuilder.o \
+		$(OBJ)/ScoreAnalyzer.o \
+		$(OBJ)/ContentSensor.o \
+		$(OBJ)/MarkovChain.o \
+		$(OBJ)/WMM.o \
+		$(OBJ)/SignalQueue.o \
+		$(OBJ)/SignalSensor.o \
+		$(OBJ)/Propagator.o \
+		$(OBJ)/Signal.o \
+		$(OBJ)/SignalTypeProperties.o \
+		$(OBJ)/GZilla.o \
+		$(OBJ)/Labeling.o \
+		$(OBJ)/ProjectionChecker.o \
+		$(OBJ)/aceplus.o \
+		$(LIBS)
+#--------------------------------------------------------
+$(OBJ)/test-sumlogprobs.o:\
+		test-sumlogprobs.C
+	$(CC) $(CFLAGS) -o $(OBJ)/test-sumlogprobs.o -c \
+		test-sumlogprobs.C
+test-sumlogprobs: \
+		$(OBJ)/test-sumlogprobs.o
+	$(CC) $(LDFLAGS) -o test-sumlogprobs \
+		$(OBJ)/test-sumlogprobs.o \
+		$(LIBS)

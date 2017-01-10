@@ -398,3 +398,207 @@ SignalType dropStrand(SignalType t)
 
 
 
+bool isSpliceSite(SignalType t)
+{
+  switch(t)
+    {
+    case LEFT_TERMINUS:
+    case RIGHT_TERMINUS:
+    case TSS:
+    case TES:
+    case ATG:
+    case TAG:
+    case NEG_ATG:
+    case NEG_TAG:
+    case NEG_TSS:
+    case NEG_TES:
+      return false;
+
+    case GT: case GT0: case GT1: case GT2:
+    case AG: case AG0: case AG1: case AG2:
+    case UTR5GT:
+    case UTR5AG:
+    case UTR3GT:
+    case UTR3AG:
+    case NEG_GT: case NEG_GT0: case NEG_GT1: case NEG_GT2:
+    case NEG_AG: case NEG_AG0: case NEG_AG1: case NEG_AG2:
+    case NEG_UTR5GT:
+    case NEG_UTR5AG:
+    case NEG_UTR3GT:
+    case NEG_UTR3AG:
+      return true;
+    }
+  INTERNAL_ERROR;
+}
+
+
+
+bool isDonor(SignalType t)
+{
+  switch(t)
+    {
+    case LEFT_TERMINUS:
+    case RIGHT_TERMINUS:
+    case TSS: case TES:
+    case ATG: case TAG:
+    case NEG_ATG: case NEG_TAG:
+    case NEG_TSS: case NEG_TES:
+    case AG: case AG0: case AG1: case AG2:
+    case UTR5AG: case UTR3AG:
+    case NEG_AG: case NEG_AG0: case NEG_AG1: case NEG_AG2:
+    case NEG_UTR5AG:
+    case NEG_UTR3AG:
+      return false;
+
+    case GT: case GT0: case GT1: case GT2:
+    case UTR5GT: case UTR3GT:
+    case NEG_GT: case NEG_GT0: case NEG_GT1: case NEG_GT2:
+    case NEG_UTR5GT:
+    case NEG_UTR3GT:
+      return true;
+    }
+  INTERNAL_ERROR;
+}
+
+
+
+bool isAcceptor(SignalType t)
+{
+  switch(t)
+    {
+    case LEFT_TERMINUS:
+    case RIGHT_TERMINUS:
+    case TSS:
+    case TES:
+    case ATG:
+    case TAG:
+    case NEG_ATG:
+    case NEG_TAG:
+    case NEG_TSS:
+    case NEG_TES:
+    case GT: case GT0: case GT1: case GT2:
+    case UTR5GT:
+    case NEG_GT: case NEG_GT0: case NEG_GT1: case NEG_GT2:
+    case UTR3GT:
+    case NEG_UTR3GT:
+    case NEG_UTR5GT:
+      return false;
+
+    case AG: case AG0: case AG1: case AG2:
+    case UTR5AG:
+    case UTR3AG:
+    case NEG_AG: case NEG_AG0: case NEG_AG1: case NEG_AG2:
+    case NEG_UTR5AG:
+    case NEG_UTR3AG:
+      return true;
+    }
+  INTERNAL_ERROR;
+}
+
+
+
+bool isStartCodon(SignalType t)
+{
+  switch(t)
+    {
+    case LEFT_TERMINUS:
+    case RIGHT_TERMINUS:
+    case TSS:
+    case TES:
+    case TAG:
+    case NEG_TAG:
+    case NEG_TSS:
+    case NEG_TES:
+    case GT: case GT0: case GT1: case GT2:
+    case UTR5GT:
+    case NEG_GT: case NEG_GT0: case NEG_GT1: case NEG_GT2:
+    case UTR3GT:
+    case NEG_UTR3GT:
+    case NEG_UTR5GT:
+    case AG: case AG0: case AG1: case AG2:
+    case UTR5AG:
+    case UTR3AG:
+    case NEG_AG: case NEG_AG0: case NEG_AG1: case NEG_AG2:
+    case NEG_UTR5AG:
+    case NEG_UTR3AG:
+      return false;
+
+    case ATG:
+    case NEG_ATG:
+      return true;
+    }
+  INTERNAL_ERROR;
+}
+
+
+
+bool isStopCodon(SignalType t)
+{
+  switch(t)
+    {
+    case LEFT_TERMINUS:
+    case RIGHT_TERMINUS:
+    case TSS:
+    case TES:
+    case ATG:
+    case NEG_ATG:
+    case NEG_TSS:
+    case NEG_TES:
+    case GT: case GT0: case GT1: case GT2:
+    case UTR5GT:
+    case NEG_GT: case NEG_GT0: case NEG_GT1: case NEG_GT2:
+    case UTR3GT:
+    case NEG_UTR3GT:
+    case NEG_UTR5GT:
+    case AG: case AG0: case AG1: case AG2:
+    case UTR5AG:
+    case UTR3AG:
+    case NEG_AG: case NEG_AG0: case NEG_AG1: case NEG_AG2:
+    case NEG_UTR5AG:
+    case NEG_UTR3AG:
+      return false;
+
+    case TAG:
+    case NEG_TAG:
+      return true;
+    }
+  INTERNAL_ERROR;
+}
+
+
+
+bool isStartOrStop(SignalType t)
+{
+  switch(t)
+    {
+    case LEFT_TERMINUS:
+    case RIGHT_TERMINUS:
+    case TSS:
+    case TES:
+    case NEG_TSS:
+    case NEG_TES:
+    case GT: case GT0: case GT1: case GT2:
+    case UTR5GT:
+    case NEG_GT: case NEG_GT0: case NEG_GT1: case NEG_GT2:
+    case UTR3GT:
+    case NEG_UTR3GT:
+    case NEG_UTR5GT:
+    case AG: case AG0: case AG1: case AG2:
+    case UTR5AG:
+    case UTR3AG:
+    case NEG_AG: case NEG_AG0: case NEG_AG1: case NEG_AG2:
+    case NEG_UTR5AG:
+    case NEG_UTR3AG:
+      return false;
+
+    case ATG:
+    case NEG_ATG:
+    case TAG:
+    case NEG_TAG:
+      return true;
+    }
+  INTERNAL_ERROR;
+}
+
+
+

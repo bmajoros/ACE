@@ -62,6 +62,7 @@ const int FIVE_PRIME_UTR=UTR5_SINGLE;
 const int THREE_PRIME_UTR=UTR3_SINGLE;
 const int NEG_FIVE_PRIME_UTR=NEG_UTR5_SINGLE;
 const int NEG_THREE_PRIME_UTR=NEG_UTR3_SINGLE;
+const int EXON=FIVE_PRIME_UTR;
 
 ContentType reverseComplement(ContentType);
 ContentType dropStrand(ContentType);

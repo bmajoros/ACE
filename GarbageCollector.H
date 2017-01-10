@@ -79,4 +79,10 @@ public:
   virtual void addSignal(SignalPtr s) {reachableSignals.insert(s);}
 };
 
+class GC_Null : public GarbageCollector
+{
+public:
+  virtual void addSignal(SignalPtr s) {}
+};
+
 #endif

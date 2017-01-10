@@ -26,9 +26,9 @@ class ContentSensor
   static ContentSensor *loadBinary(const BOOM::String &);
 protected:
   ContentSensor();
-  void setContentType(ContentType);
   void setStrand(Strand);
 public:
+  void setContentType(ContentType);
   static const int NO_PHASE;
 
   // Static methods:

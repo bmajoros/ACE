@@ -18,7 +18,13 @@ class LightGraph {
 public:
   LightGraph(const String &filename);
   LightGraph(File &);
+  LightGraph(const String &substrate,int substrateLength);
   virtual ~LightGraph();
+  void addVertex(LightVertex*);
+  void addEdge(LightEdge*);
+  void sort();
+  void sortVertices();
+  void sortEdges();
   bool save(const String &filename);
   bool save(ostream &);
   int getNumVertices() const;
@@ -31,6 +37,17 @@ public:
   inline int getSubstrateLength() { return substrateLength; }
   void getATGs(Vector<LightVertex*> &);
   void getAnnotatedATGs(Vector<LightVertex*> &);
+  void dropVertex(int index); // doesn't delete it, sets pointer to NULL
+  void dropEdge(int index); // doesn't delete it, sets pointer to NULL
+  void deleteNullVertices();
+  void deleteNullEdges();
+  void deleteDuplicates();
+  void deleteVertex(int index); // dangerous! invalidates indices!
+  void deleteEdge(int index); // dangerous! invalidates indices!
+  bool vertexExists(const String &substrate,Strand,int begin,int end,
+		    SignalType) const;
+  bool edgeExists(const String &substrate,Strand,int begin,int end,
+		  ContentType) const;
 protected:
   Regex leftRegex, rightRegex, edgeIdRegex, annoRegex, IdRegex;
   Vector<LightVertex*> vertices;
@@ -38,6 +55,8 @@ protected:
   String substrate;
   int substrateLength;
   bool load(File &);
+  void deleteIncidentEdges(LightVertex *);
+  void deleteEdges(Vector<LightEdge*> &);
 };
 
 ostream &operator<<(ostream &,const LightGraph &);

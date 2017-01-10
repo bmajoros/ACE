@@ -23,8 +23,8 @@ using namespace BOOM;
 
 class ProjectionChecker {
 public:
-  ProjectionChecker(const GffTranscript &refTrans,
-		    const GffTranscript &altTrans,
+  ProjectionChecker(GffTranscript &refTrans,
+		    GffTranscript &altTrans,
 		    const String &refSubstrate,
 		    const Sequence &refSeq,
 		    const String &altSubstrate,
@@ -54,7 +54,7 @@ public:
 			       const int nmdDistParm);
 protected:
   const SignalSensors &sensors;
-  const GffTranscript &refTrans, &altTrans;
+  GffTranscript &refTrans, &altTrans;
   const Sequence &refSeq, &altSeq;
   const String &refSubstrate, &altSubstrate;
   const Labeling &labeling;

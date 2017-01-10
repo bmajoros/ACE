@@ -12,7 +12,7 @@ using namespace BOOM;
 LightVertex::LightVertex(const String &substrate,SignalType t,int begin,
 			 int end,float score,Strand s,int ID)
   : type(t), begin(begin), end(end), score(score), strand(s), ID(ID),
-    substrate(substrate), supported(false)
+    substrate(substrate), supported(false), annotated(false)
 {
   // ctor
 }
@@ -127,5 +127,46 @@ void LightVertex::setSupport(bool s)
   supported=s;
 }
 
+
+
+void LightVertex::setID(int id)
+{
+  ID=id;
+}
+
+
+
+void LightVertex::dropEdgeIn(LightEdge *e)
+{
+  int n=edgesIn.size();
+  for(int i=0 ; i<n ; ++i)
+    if(edgesIn[i]==e) {
+      edgesIn.cut(i);
+      break;
+    }
+}
+
+
+
+void LightVertex::dropEdgeOut(LightEdge *e)
+{
+  int n=edgesOut.size();
+  for(int i=0 ; i<n ; ++i)
+    if(edgesOut[i]==e) {
+      edgesOut.cut(i);
+      break;
+    }
+}
+
+
+
+bool LightVertex::operator==(const LightVertex &other) const
+{
+  return substrate==other.substrate &&
+    strand==other.strand &&
+    begin==other.begin &&
+    end==other.end &&
+    type==other.type;
+}
 
 

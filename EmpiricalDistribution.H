@@ -17,6 +17,7 @@ class EmpiricalDistribution : public DiscreteDistribution
   typedef pair<unsigned,double> EmpiricalDistributionElement;
   BOOM::Vector<EmpiricalDistributionElement*> v;
   double smallestElemLogP, largestElemLogP, mean;
+  double smallestValue;
   int binSize;
   bool useInterpolation;
 
