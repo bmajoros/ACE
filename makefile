@@ -20,6 +20,7 @@ all: \
 	vcf-to-tvf \
 	tvf-to-fasta \
 	ace \
+	aceplus \
 	subset-vcf-by-sample \
 	map-annotations
 
