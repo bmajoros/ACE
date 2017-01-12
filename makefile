@@ -14,7 +14,7 @@ LIBS		= -lpthread  -lgsl -lm -lgslcblas -LBOOM -lBOOM
 
 
 all: \
-	BOOM \
+	BOOM/libBOOM.a \
 	obj \
 	train-signal-sensor \
 	vcf-to-tvf \
@@ -22,10 +22,14 @@ all: \
 	ace \
 	aceplus \
 	subset-vcf-by-sample \
-	map-annotations
+	map-annotations \
+	permissions
 
-BOOM:
-	ln -s ../BOOM
+permissions:
+	chmod a+x *.pl ; chmod a+x perl/*.pl
+
+BOOM/libBOOM.a:
+	cd BOOM ; make all ; cd -
 
 obj: 
 	mkdir obj
