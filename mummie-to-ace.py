@@ -11,6 +11,7 @@ from builtins import (bytes, dict, int, list, object, range, str, ascii,
 # The above imports should allow this program to run in both Python 2 and
 # Python 3.  You might need to update your version of module "future".
 import sys
+from Translation import Translation
 from Rex import Rex
 rex=Rex()
 
@@ -33,6 +34,15 @@ def writeModel(hash,OUT):
         OUT.write(key+"\n")
         OUT.write(str(score)+"\n")
 
+def writeModelReverse(hash,OUT):
+    keys=hash.keys()
+    N=len(keys)
+    OUT.write(str(N)+"\n")
+    for key in keys:
+        score=hash[key]
+        OUT.write(Translation.reverseComplement(key)+"\n")
+        OUT.write(str(score)+"\n")
+
 def writeModelFile(models,filename,contentType,order):
     with open(filename,"wt") as OUT:
         OUT.write("IMM\n")
@@ -41,6 +51,15 @@ def writeModelFile(models,filename,contentType,order):
         OUT.write(str(order+1)+"\n")
         for i in range(order+1):
             writeModel(models[i],OUT)
+        # also write reverse-strand model:
+        OUT.write("IMM\n")
+        if(contentType=="SINGLE-EXON"): contentType="NEG-SINGLE-EXON"
+        elif(contentType=="INTRON"):  contentType="NEG-INTRON"
+        OUT.write(contentType+"\n")
+        OUT.write(str(order)+"\t-1\n")
+        OUT.write(str(order+1)+"\n")
+        for i in range(order+1):
+            writeModelReverse(models[i],OUT)
 
 #=========================================================================
 #                                 main()

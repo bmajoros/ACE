@@ -23,6 +23,8 @@ all: \
 	aceplus \
 	subset-vcf-by-sample \
 	map-annotations \
+	IMM-to-periodic \
+	compile-markov-chain \
 	permissions
 
 permissions:
