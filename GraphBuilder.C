@@ -93,6 +93,7 @@ double GraphBuilder::scoreEdge(LightEdge *edge)
   }
   double score=model.contentSensors->score(edge->getType(),edge->getBegin(),
 					  edge->getEnd());
+  if(score>0) cout<<" POSITIVE: "<<edge->getType()<<" "<<edge->getBegin()<<" "<<edge->getEnd()<<endl;
   if(!isFinite(score)) {
     cerr<<*edge<<endl;
     cerr<<"edge emission score = "<<score<<" begin="<<edge->getBegin()<<
@@ -124,7 +125,8 @@ double GraphBuilder::scoreEdge(LightEdge *edge)
     cerr<<"trans="<<transProb<<" numChoices="<<numChoices<<endl;
     INTERNAL_ERROR;
   }
-  score+=transProb;
+  //score+=transProb; //###
+
   if(numChoices==0) {
     cout<<*edge->getLeft()<<endl;
     cout<<*edge<<endl;
@@ -485,7 +487,7 @@ void GraphBuilder::leftSweep(LightGraph &G,
   todo.push(left);
   while(!todo.isEmpty()) {
     LightVertex *v=todo.pop();
-    cout<<"LEFTSWEEP "<<todo.size()<<"\t"<<*v<<endl;
+    //cout<<"LEFTSWEEP "<<todo.size()<<"\t"<<*v<<endl;
     ++vertexCounts[v->getID()];
     Vector<LightEdge*> &edges=v->getEdgesOut();
     for(Vector<LightEdge*>::iterator cur=edges.begin(), end=edges.end() ;
@@ -516,7 +518,7 @@ void GraphBuilder::rightSweep(LightGraph &G,
   todo.push(right);
   while(!todo.isEmpty()) {
     LightVertex *v=todo.pop();
-    cout<<"RIGHTSWEEP "<<todo.size()<<"\t"<<*v<<endl;
+    //cout<<"RIGHTSWEEP "<<todo.size()<<"\t"<<*v<<endl;
     ++vertexCounts[v->getID()];
     Vector<LightEdge*> &edges=v->getEdgesIn();
     for(Vector<LightEdge*>::iterator cur=edges.begin(), end=edges.end() ;
@@ -715,9 +717,9 @@ void GraphBuilder::deNovoSignalSensing(SignalSensor &sensor,
 	   sensor.consensusOccursAt(refSeqStr,refPos+consensusOffset)) {
 	  const double refScore=sensor.getLogP(refSeq,refSeqStr,refPos);
 	  if(altScore-refScore<log(2)) continue;
-	  cout<<refScore<<"\t"<<altScore<<"\t"<<refSeqStr.substring(refPos,sensorLen)<<"\t"<<altSeqStr.substring(pos,sensorLen)<<"\t"<<refSeqStr.substring(refPos+consensusOffset,consensusLen)<<"\t"<<altSeqStr.substring(pos+consensusOffset,consensusLen)<<endl;
+	  //cout<<refScore<<"\t"<<altScore<<"\t"<<refSeqStr.substring(refPos,sensorLen)<<"\t"<<altSeqStr.substring(pos,sensorLen)<<"\t"<<refSeqStr.substring(refPos+consensusOffset,consensusLen)<<"\t"<<altSeqStr.substring(pos+consensusOffset,consensusLen)<<endl;
 	}
-	else cout<<"CIGAR_UNDEFINED\t"<<altScore<<"\t"<<altSeqStr.substring(pos,sensorLen)<<"\t"<<altSeqStr.substring(pos+consensusOffset,consensusLen)<<endl;
+	//else cout<<"CIGAR_UNDEFINED\t"<<altScore<<"\t"<<altSeqStr.substring(pos,sensorLen)<<"\t"<<altSeqStr.substring(pos+consensusOffset,consensusLen)<<endl;
 	ACEplus_Vertex *v=newVertex(substrate,signalType,pos+consensusOffset,
 				 pos+consensusOffset+consensusLen,
 				 altScore,strand,G->getNumVertices());

@@ -28,6 +28,7 @@ struct Model {
                                   // can become intronic
   float MIN_EXON_INTRON_RATIO; // ratio of scores for exon/intron sensors;
                                // below this, exon definition fails
+  float MIN_SCORE; // don't report any structure scoring less than this
   bool allowExonSkipping, allowIntronRetention, allowCrypticSites;
   bool allowDeNovoSites, allowCrypticExons, allowRegulatoryChanges;
   Model();

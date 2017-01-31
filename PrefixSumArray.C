@@ -39,6 +39,7 @@ void PrefixSumArray::compute(const ContentSensor &sensor,const Sequence &seq,
 
 double PrefixSumArray::getInterval(int begin,int end) const
 {
+  if(begin>=end) return 0.0;
   double beginScore=begin>0 ? A[begin-1] : 0.0;
   return A[end-1]-beginScore;
 }

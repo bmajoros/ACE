@@ -26,8 +26,10 @@ protected:
   virtual void processConfig(const String &filename);
   virtual ContentSensor *loadContentSensor(const String &label,
 					   ConfigFile &);
-  virtual void buildPSAs();
-  virtual void buildPSA(ContentType type);
+  virtual void buildPSAs(ContentSensors &contentSensors,int seqLen,
+			 Sequence &seq,String &str);
+  virtual void buildPSA(ContentType type,ContentSensors &contentSensors,
+			int seqLen,Sequence &seq,String &str);
   void checkProjection(const String &outGff,
 		       bool &mapped,
 		       const Labeling &refLab,

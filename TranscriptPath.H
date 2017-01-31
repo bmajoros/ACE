@@ -34,6 +34,7 @@ public:
 			      Strand,
 			      const String &source) const;
   void getVertices(Vector<ACEplus_Vertex*> &into);
+  void dumpScores();
 protected:
   Vector<ACEplus_Edge*> edges;
   double score;

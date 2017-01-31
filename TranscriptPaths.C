@@ -88,8 +88,10 @@ void TranscriptPaths::computeLRs(double denom)
   for(int i=0 ; i<numPaths ; ++i) {
     TranscriptPath *path=paths[i];
     path->computeScore();
+    //cout<<"path->getScore()="<<path->getScore()<<endl;
     const double llr=path->getScore()-denom;
     const double lr=exp(llr);
+    cout<<"setting score "<<lr<<" = "<<path->getScore()<<" - "<<denom<<endl;
     path->setScore(lr);
   }
 }

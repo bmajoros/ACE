@@ -46,7 +46,7 @@ int ACEplus::main(int argc,char *argv[])
   loadInputs(configFile,refGffFile,refFasta,altFasta);
 
   // Build prefix-sum arrays for fast scoring
-  buildPSAs();
+  buildPSAs(contentSensors,altSeqLen,altSeq,altSeqStr);
 
   // Check that the reference gene is well-formed
   if(VERBOSE) cerr<<"checking reference gene"<<endl;
@@ -171,6 +171,7 @@ void ACEplus::processConfig(const String &filename)
   model.allowDeNovoSites=config.getBoolOrDie("allow-denovo-sites");
   model.allowCrypticExons=config.getBoolOrDie("allow-cryptic-exons");
   model.allowRegulatoryChanges=config.getBoolOrDie("allow-regulatory-changes");
+  model.MIN_SCORE=config.getFloatOrDie("min-path-score");
 
   chdir(oldPath);
   delete [] oldPath;
@@ -193,11 +194,12 @@ ContentSensor *ACEplus::loadContentSensor(const String &label,
 /****************************************************************
  ACEplus::buildPSAs()
  ****************************************************************/
-void ACEplus::buildPSAs()
+void ACEplus::buildPSAs(ContentSensors &contentSensors,int seqLen,
+			Sequence &seq,String &str)
 {
-  buildPSA(EXON);
-  buildPSA(INTRON);
-  buildPSA(INTERGENIC);
+  buildPSA(EXON,contentSensors,seqLen,seq,str);
+  buildPSA(INTRON,contentSensors,seqLen,seq,str);
+  buildPSA(INTERGENIC,contentSensors,seqLen,seq,str);
 }
 
 
@@ -205,12 +207,13 @@ void ACEplus::buildPSAs()
 /****************************************************************
  ACEplus::buildPSA()
  ****************************************************************/
-void ACEplus::buildPSA(ContentType type)
+void ACEplus::buildPSA(ContentType type,ContentSensors &contentSensors,
+		       int seqLen,Sequence &seq,String &str)
 {
   PrefixSumArray &psa=contentSensors.getPSA(type);
-  psa.resize(altSeqLen);
+  psa.resize(seqLen);
   ContentSensor *sensor=contentSensors.getSensor(type);
-  psa.compute(*sensor,altSeq,altSeqStr);
+  psa.compute(*sensor,seq,str);
 }
 
 
@@ -218,8 +221,11 @@ void ACEplus::buildPSA(ContentType type)
 /****************************************************************
  ACEplus::getRefLikelihood()
  ****************************************************************/
-double ACEplus::getRefLikelihood(const Labeling &refLab,GffTranscript *altTrans)
+double ACEplus::getRefLikelihood(const Labeling &refLab,
+				 GffTranscript *altTrans)
 {
+  buildPSAs(contentSensors,refSeqLen,refSeq,refSeqStr); // ###
+
   ProjectionChecker checker(*altTrans,*refTrans,altSeqStr,altSeq,
 			    refSeqStr,refSeq,refLab,sensors);
   TranscriptSignals *signals=checker.findBrokenSpliceSites();
@@ -231,6 +237,7 @@ double ACEplus::getRefLikelihood(const Labeling &refLab,GffTranscript *altTrans)
     throw String("Wrong number of reference paths: ")+paths.numPaths();
   TranscriptPath *path=paths[0];
   path->computeScore();
+  path->dumpScores();
   double score=path->getScore();
   delete signals; delete G;
   return score;
@@ -335,6 +342,8 @@ void ACEplus::enumerateAlts(TranscriptPaths &paths,
   // Process each path
   for(int i=0 ; i<numPaths ; ++i) {
     TranscriptPath *path=paths[i];
+    //path->dumpScores();
+    if(path->getScore()<model.MIN_SCORE) continue;
     processAltStructure(*path,altStructNode,projectedLab,i,*signals);
   }
 }
