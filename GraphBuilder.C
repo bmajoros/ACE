@@ -30,12 +30,12 @@ GraphBuilder::GraphBuilder(const GffTranscript &projected,
 			   Model &model,
 			   const Sequence &refSeq,const String &refSeqStr,
 			   const Sequence &altSeq,const String &altSeqStr,
-			   CigarAlignment &altToRef)
+			   CigarAlignment &altToRef,bool strict)
   : projected(projected), signals(signals), model(model), refSeq(refSeq), 
     refSeqStr(refSeqStr), altSeq(altSeq), altSeqStr(altSeqStr), G(NULL), 
     changes(false), altToRef(altToRef)
 {
-  buildGraph();
+  buildGraph(strict);
 }
 
 
@@ -54,6 +54,7 @@ ACEplus_Edge *GraphBuilder::newEdge(const String &substrate,ContentType type,
 				 LightVertex *from,LightVertex *to,
 				 int begin,int end,Strand strand,int ID)
 {
+  if(end-begin<10) return NULL;
   if(G->edgeExists(substrate,strand,begin,end,type)) return NULL;
   return new ACEplus_Edge(substrate,type,from,to,begin,end,strand,ID);
 }
@@ -468,7 +469,6 @@ void GraphBuilder::handleRetentionRight(LightVertex *v)
     new_Edge->getChange().intronRetention=true;
     from->addEdgeOut(new_Edge); to->addEdgeIn(new_Edge);
     new_Edge->setBroken(false);
-    from->addEdgeOut(new_Edge); to->addEdgeIn(new_Edge);
     G->addEdge(new_Edge);
   }
 }
@@ -485,13 +485,20 @@ void GraphBuilder::leftSweep(LightGraph &G,
   todo.push(left);
   while(!todo.isEmpty()) {
     LightVertex *v=todo.pop();
+    cout<<"LEFTSWEEP "<<todo.size()<<"\t"<<*v<<endl;
     ++vertexCounts[v->getID()];
     Vector<LightEdge*> &edges=v->getEdgesOut();
     for(Vector<LightEdge*>::iterator cur=edges.begin(), end=edges.end() ;
 	cur!=end ; ++cur) {
       LightEdge *edge=*cur;
       ++edgeCounts[edge->getID()];
-      todo.push(edge->getRight());
+      //cout<<"\t"<<v->getBegin()<<" => "<<edge->getRight()->getBegin()<<endl;
+      if(edge->getRight()->getBegin()<v->getBegin()) {
+	cout<<*v<<"\n"<<*edge->getRight()<<endl;
+	INTERNAL_ERROR;
+      }
+      if(vertexCounts[edge->getRight()->getID()]==0)
+	todo.push(edge->getRight());
     }
   }
 }
@@ -509,13 +516,15 @@ void GraphBuilder::rightSweep(LightGraph &G,
   todo.push(right);
   while(!todo.isEmpty()) {
     LightVertex *v=todo.pop();
+    cout<<"RIGHTSWEEP "<<todo.size()<<"\t"<<*v<<endl;
     ++vertexCounts[v->getID()];
     Vector<LightEdge*> &edges=v->getEdgesIn();
     for(Vector<LightEdge*>::iterator cur=edges.begin(), end=edges.end() ;
 	cur!=end ; ++cur) {
       LightEdge *edge=*cur;
       ++edgeCounts[edge->getID()];
-      todo.push(edge->getLeft());
+      if(vertexCounts[edge->getLeft()->getID()]<2)
+	todo.push(edge->getLeft());
     }
   }
 }
@@ -543,11 +552,17 @@ void GraphBuilder::pruneUnreachable(LightGraph &G)
 {
   Array1D<int> vertexCounts(G.getNumVertices()); vertexCounts.setAllTo(0);
   Array1D<int> edgeCounts(G.getNumEdges()); edgeCounts.setAllTo(0);
+  cout<<"leftSweep"<<endl;
   leftSweep(G,vertexCounts,edgeCounts);
+  cout<<"rightSweep"<<endl;
   rightSweep(G,vertexCounts,edgeCounts);
+  cout<<"deleteUnreachable"<<endl;
   deleteUnreachable(G,vertexCounts,edgeCounts);
+  cout<<"delete null vertices"<<endl;
   G.deleteNullVertices();
+  cout<<"delete null edge"<<endl;
   G.deleteNullEdges();
+  cout<<"sort"<<endl;
   G.sort();
 }
 
@@ -587,18 +602,38 @@ void GraphBuilder::findVariants(Vector<Interval> &variants)
 
 void GraphBuilder::handleDeNovoSites()
 {
+  cout<<"handleDeNovoSites()"<<endl;
+
   // First, find all variants
-  Vector<Interval> variants;
-  findVariants(variants);
+  if(variants.isEmpty()) findVariants(variants);
+  cout<<variants.size()<<" variants found"<<endl;
 
   // Now scan for de novo sites overlapping any variant
   Vector<ACEplus_Vertex*> newVertices;
   scanDeNovo(*model.signalSensors->donorSensor,variants,newVertices);
+  cout<<newVertices.size()<<" new vertices after scanning for donors"<<endl;
   scanDeNovo(*model.signalSensors->acceptorSensor,variants,newVertices);
+  cout<<newVertices.size()<<" after scanning for acceptors"<<endl;
+
+  // Now link the new vertices to other vertices
+  cout<<G->getNumVertices()<<" vertices before linking"<<endl;
+  linkDeNovoVertices(newVertices);
 
   // If cryptic exons are enabled, scan for partner signals to complete
   // new exons
+  cout<<G->getNumVertices()<<" vertices before adding cryptic exons"<<endl;
   if(model.allowCrypticExons) addCrypticExons(newVertices);
+  cout<<newVertices.size()<<" after scanning for cryptic exons"<<endl;
+  cout<<G->getNumVertices()<<" vertices after adding cryptic exons"<<endl;
+}
+
+
+
+void dumpIntervals(const Vector<Interval> &windows)
+{
+  for(Vector<Interval>::const_iterator cur=windows.begin(), end=windows.end() ;
+      cur!=end ; ++cur)
+    cout<<*cur<<endl;
 }
 
 
@@ -611,15 +646,16 @@ void GraphBuilder::scanDeNovo(SignalSensor &sensor,Vector<Interval> &variants,
   // First, get a set of windows to run the sensor on
   Vector<Interval> windows;
   getVariantWindows(windows,sensor,variants);
+  //cout<<windows.size()<<" variant windows before coalescing:"<<endl;
+  //dumpIntervals(windows);
 
   // Coalesce windows, in case any overlap
   coalesceWindows(windows);
+  //cout<<windows.size()<<" variant windows after coalescing:"<<endl;
+  //dumpIntervals(windows);
 
   // Perform signal sensing in all windows
   deNovoSignalSensing(sensor,windows,newVertices);
-
-  // Now link the new vertices to other vertices
-  linkDeNovoVertices(newVertices);
 }
 
 
@@ -659,6 +695,7 @@ void GraphBuilder::deNovoSignalSensing(SignalSensor &sensor,
 				       Vector<Interval> &windows,
 				       Vector<ACEplus_Vertex*> &newVertices)
 {
+  const double threshold=sensor.getCutoff();
   const int consensusOffset=sensor.getConsensusOffset();
   const int consensusLen=sensor.getConsensusLength();
   const String &substrate=projected.getSubstrate();
@@ -672,12 +709,15 @@ void GraphBuilder::deNovoSignalSensing(SignalSensor &sensor,
       if(pos+sensorLen>altSeq.getLength()) continue;
       if(sensor.consensusOccursAt(altSeqStr,pos+consensusOffset)) {
 	const double altScore=sensor.getLogP(altSeq,altSeqStr,pos);
+	if(altScore<threshold) continue;
 	const int refPos=altToRef[pos];
 	if(refPos!=CIGAR_UNDEFINED && refPos+sensorLen<=refSeq.getLength() &&
 	   sensor.consensusOccursAt(refSeqStr,refPos+consensusOffset)) {
 	  const double refScore=sensor.getLogP(refSeq,refSeqStr,refPos);
-	  if(refScore>=altScore) continue;
+	  if(altScore-refScore<log(2)) continue;
+	  cout<<refScore<<"\t"<<altScore<<"\t"<<refSeqStr.substring(refPos,sensorLen)<<"\t"<<altSeqStr.substring(pos,sensorLen)<<"\t"<<refSeqStr.substring(refPos+consensusOffset,consensusLen)<<"\t"<<altSeqStr.substring(pos+consensusOffset,consensusLen)<<endl;
 	}
+	else cout<<"CIGAR_UNDEFINED\t"<<altScore<<"\t"<<altSeqStr.substring(pos,sensorLen)<<"\t"<<altSeqStr.substring(pos+consensusOffset,consensusLen)<<endl;
 	ACEplus_Vertex *v=newVertex(substrate,signalType,pos+consensusOffset,
 				 pos+consensusOffset+consensusLen,
 				 altScore,strand,G->getNumVertices());
@@ -774,6 +814,7 @@ void GraphBuilder::linkDeNovoRight(ACEplus_Vertex *v,int id)
       if(!edge) continue;
       edge->setBroken(false);
       graph.addEdge(edge);
+      //cout<<*v<<endl;cout<<*w<<endl;
       v->addEdgeOut(edge); w->addEdgeIn(edge);
       if(w->isAnnotated()) break;
     }
@@ -798,6 +839,7 @@ bool GraphBuilder::allVerticesAreAnnotated()
 void GraphBuilder::addCrypticExons(Vector<ACEplus_Vertex*> &newVertices)
 {
   G->sort();
+  cout<<newVertices.size()<<" new vertices"<<endl;
   for(Vector<ACEplus_Vertex*>::iterator cur=newVertices.begin(), end=
 	newVertices.end() ; cur!=end ; ++cur) {
     ACEplus_Vertex *v=*cur;
@@ -846,10 +888,12 @@ void GraphBuilder::findMateSignals(SignalSensor &sensor,
   const SignalType signalType=sensor.getSignalType();
   const Strand strand=projected.getStrand();
   const int sensorLen=sensor.getContextWindowLength();
-  for(int pos=scanWindow.getBegin() ; pos<scanWindow.getEnd() ; ++pos) {
+  for(int pos=scanWindow.getBegin() ; pos<scanWindow.getEnd()-sensorLen+1 ; 
+      ++pos) {
     if(pos+sensorLen>altSeq.getLength()) continue;
     if(sensor.consensusOccursAt(altSeqStr,pos+consensusOffset)) {
       const double altScore=sensor.getLogP(altSeq,altSeqStr,pos);
+      if(altScore<sensor.getCutoff()) continue;
       ACEplus_Vertex *v=newVertex(substrate,signalType,pos+consensusOffset,
 			       pos+consensusOffset+consensusLen,
 			       altScore,strand,G->getNumVertices());
@@ -864,6 +908,10 @@ void GraphBuilder::findMateSignals(SignalSensor &sensor,
 
 void GraphBuilder::linkVertices(LightVertex *left,LightVertex *right)
 {
+  if(left->getEnd()>=right->getBegin()) {
+    cout<<*left<<"\n"<<*right<<endl;
+    INTERNAL_ERROR;
+  }
   int leftBegin, leftEnd, rightBegin, rightEnd;
   getContextWindow(left,leftBegin,leftEnd);
   getContextWindow(right,rightBegin,rightEnd);
@@ -882,7 +930,9 @@ void GraphBuilder::linkVertices(LightVertex *left,LightVertex *right)
 }
 
 
-
+/* This function scans left of a new donor site to search for a matching
+   acceptor site that could complete a cryptic exon deep in an intron.
+ */
 void GraphBuilder::scanCrypticExonLeft(int of)
 {
   // First, identify the scanning region
@@ -891,16 +941,12 @@ void GraphBuilder::scanCrypticExonLeft(int of)
   getContextWindow(ofVertex,ofBegin,ofEnd);
   LightVertex *left=findAnnotatedVertexLeftOf(of);
   if(!left) INTERNAL_ERROR;
+  if(left->getType()!=AG) return;
   getContextWindow(left,leftBegin,leftEnd);
 
-  // Figure out what type of signals to scan for
-  SignalType mateType, ofType=ofVertex->getType();
-  if(ofType==GT) mateType=AG;
-  else if(ofType==AG) mateType=GT;
-  else INTERNAL_ERROR;
-  SignalSensor *sensor=model.signalSensors->findSensor(mateType);
-
   // Scan
+  SignalSensor *sensor=model.signalSensors->findSensor(AG);
+
   Vector<ACEplus_Vertex*> newVertices;
   findMateSignals(*sensor,Interval(leftEnd,ofBegin),newVertices);
   
@@ -908,12 +954,12 @@ void GraphBuilder::scanCrypticExonLeft(int of)
   for(Vector<ACEplus_Vertex*>::iterator cur=newVertices.begin(), end=
 	newVertices.end() ; cur!=end ; ++cur) {
     LightVertex *newVertex=*cur;
-    int newBegin, newEnd;
-    getContextWindow(newVertex,newBegin,newEnd);
+    //int newBegin, newEnd;
+    //getContextWindow(newVertex,newBegin,newEnd);
 
     // Link this new vertex to the de novo vertex, to create a cryptic exon
+    //cout<<"NEW VERTEX="<<*newVertex<<endl;
     linkVertices(newVertex,ofVertex);
-    
     // Link this new vertex left to the nearest annotated vertex
     linkVertices(left,newVertex);
   }
@@ -921,6 +967,9 @@ void GraphBuilder::scanCrypticExonLeft(int of)
 
 
 
+/* This function scans right of a new acceptor site to search for a matching
+   donor site that could complete a cryptic exon deep in an intron.
+ */
 void GraphBuilder::scanCrypticExonRight(int of)
 {
   // First, identify the scanning region
@@ -929,16 +978,12 @@ void GraphBuilder::scanCrypticExonRight(int of)
   getContextWindow(ofVertex,ofBegin,ofEnd);
   LightVertex *right=findAnnotatedVertexRightOf(of);
   if(!right) INTERNAL_ERROR;
+  if(right->getType()!=GT) return;
   getContextWindow(right,rightBegin,rightEnd);
 
-  // Figure out what type of signals to scan for
-  SignalType mateType, ofType=ofVertex->getType();
-  if(ofType==GT) mateType=AG;
-  else if(ofType==AG) mateType=GT;
-  else INTERNAL_ERROR;
-  SignalSensor *sensor=model.signalSensors->findSensor(mateType);
-
   // Scan
+  SignalSensor *sensor=model.signalSensors->findSensor(GT);
+
   Vector<ACEplus_Vertex*> newVertices;
   findMateSignals(*sensor,Interval(ofEnd,rightBegin),newVertices);
   
@@ -946,8 +991,8 @@ void GraphBuilder::scanCrypticExonRight(int of)
   for(Vector<ACEplus_Vertex*>::iterator cur=newVertices.begin(), end=
 	newVertices.end() ; cur!=end ; ++cur) {
     LightVertex *newVertex=*cur;
-    int newBegin, newEnd;
-    getContextWindow(newVertex,newBegin,newEnd);
+    //int newBegin, newEnd;
+    //getContextWindow(newVertex,newBegin,newEnd);
 
     // Link this new vertex to the de novo vertex, to create a cryptic exon
     linkVertices(ofVertex,newVertex);
@@ -962,8 +1007,7 @@ void GraphBuilder::scanCrypticExonRight(int of)
 void GraphBuilder::handleRegulatoryChanges()
 {
   // First, find variants
-  Vector<Interval> variants;
-  findVariants(variants);
+  if(variants.isEmpty()) findVariants(variants);
   if(variants.size()==0) return;
   Vector<ExonEdge> exons;
   getAnnotatedExons(exons);
@@ -988,13 +1032,14 @@ void GraphBuilder::handleRegulatoryChanges()
 
 double GraphBuilder::exonDefChange(Interval interval)
 {
-
   const ContentSensor *sensor=model.contentSensors->getSensor(EXON);
   double altScore=
     model.contentSensors->score(EXON,interval.getBegin(),interval.getEnd());
   int refBegin=altToRef.mapApproximate(interval.getBegin());
   int refEnd=altToRef.mapApproximate(interval.getEnd());
-  double refScore=sensor->scoreSubsequence(refSeq,refSeqStr,refBegin,refEnd,0);
+  //cout<<refBegin<<" "<<refEnd<<" "<<interval<<endl;
+  double refScore=sensor->scoreSubsequence(refSeq,refSeqStr,refBegin,
+					   refEnd-refBegin,0);
   double altNormalized=altScore/interval.length();
   double refNormalized=refScore/(refEnd-refBegin);
   double change=altNormalized-refNormalized;
@@ -1084,6 +1129,7 @@ void GraphBuilder::handleExonWeakening(const Vector<Interval> &variants,
     if(begin<exon.interval.getBegin()) begin=exon.interval.getBegin();
     if(end>exon.interval.getEnd()) end=exon.interval.getEnd();
     if(end<=begin) continue;
+    //cout<<"begin="<<begin<<" end="<<end<<" exon end="<<exon.interval.getEnd()<<endl;
     const double LR=exonDefChange(Interval(begin,end));
 
     // If the variant substantially weakens exon definition, propose
@@ -1484,23 +1530,35 @@ void GraphBuilder::proposeCrypticExons(const Interval &variant,
 
 
 
-void GraphBuilder::buildGraph()
+void GraphBuilder::buildGraph(bool strict)
 {
   // First, build a basic graph from the projected annotation
+  cout<<"building initial graph"<<endl;
   buildTranscriptGraph();
+  cout<<G->getNumVertices()<<" vertices in graph"<<endl;
 
-  // Add vertices & edges to address broken structures
-  if(signals.anyBroken()) handleBrokenSites();
+  if(!strict) {
+    // Add vertices & edges to address broken structures
+    cout<<"handling broken sites"<<endl;
+    if(signals.anyBroken()) handleBrokenSites();
+    cout<<G->getNumVertices()<<" vertices in graph"<<endl;
 
-  // Add novel sites created by genetic variants
-  if(model.allowDeNovoSites) handleDeNovoSites();
+    // Add novel sites created by genetic variants
+    cout<<"predicting de novo sites"<<endl;
+    if(model.allowDeNovoSites) handleDeNovoSites();
+    cout<<G->getNumVertices()<<" vertices in graph"<<endl;
 
-  // Add vertices/edges to accommodate structure changes due to ESE variants
-  if(model.allowRegulatoryChanges) handleRegulatoryChanges();
+    // Add vertices/edges to accommodate structure changes due to ESE variants
+    cout<<"predicting regulatory changes"<<endl;
+    if(model.allowRegulatoryChanges) handleRegulatoryChanges();
+    cout<<G->getNumVertices()<<" vertices in graph"<<endl;
 
-  // Prune away any vertex or edge not reachable from both ends
-  G->sort();
-  pruneUnreachable(*G);
+    // Prune away any vertex or edge not reachable from both ends
+    cout<<G->getNumVertices()<<" vertices before pruning"<<endl;
+    G->sort();
+    pruneUnreachable(*G);
+    cout<<G->getNumVertices()<<" vertices after pruning"<<endl;
+  }
 
   // Score edges
   const int numEdges=G->getNumEdges();

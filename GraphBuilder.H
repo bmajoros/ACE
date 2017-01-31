@@ -31,7 +31,7 @@ public:
 	       Model &,
 	       const Sequence &refSeq,const String &refSeqStr,
 	       const Sequence &altSeq,const String &altSeqStr,
-	       CigarAlignment &altToRef);
+	       CigarAlignment &altToRef,bool strict=false);
   virtual ~GraphBuilder() {}
   LightGraph *getGraph();
   bool mapped() const;
@@ -48,7 +48,8 @@ protected:
   bool changes;
   Model &model;
   LightGraph *G;
-  void buildGraph();
+  Vector<Interval> variants;
+  void buildGraph(bool strict);
   void buildTranscriptGraph();
   ACEplus_Vertex *newVertex(const String &substrate,SignalType,int begin,
 			    int end,double score,Strand,int ID);

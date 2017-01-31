@@ -6,6 +6,7 @@
  ****************************************************************/
 #include <iostream>
 #include "LightVertex.H"
+#include "LightEdge.H"
 using namespace std;
 using namespace BOOM;
 
@@ -21,6 +22,7 @@ LightVertex::LightVertex(const String &substrate,SignalType t,int begin,
 
 void LightVertex::addEdgeIn(LightEdge *e)
 {
+  if(e->getLeft()->getBegin()>begin) INTERNAL_ERROR;
   edgesIn.push_back(e);
 }
 
@@ -28,6 +30,11 @@ void LightVertex::addEdgeIn(LightEdge *e)
 
 void LightVertex::addEdgeOut(LightEdge *e)
 {
+  if(e->getRight()->getBegin()<begin) {
+    cout<<*this<<endl;
+    cout<<*e->getRight()<<endl;
+    INTERNAL_ERROR;
+  }
   edgesOut.push_back(e);
 }
 

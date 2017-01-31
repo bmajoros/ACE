@@ -224,7 +224,7 @@ double ACEplus::getRefLikelihood(const Labeling &refLab,GffTranscript *altTrans)
 			    refSeqStr,refSeq,refLab,sensors);
   TranscriptSignals *signals=checker.findBrokenSpliceSites();
   GraphBuilder graphBuilder(*refTrans,*signals,model,altSeq,altSeqStr,
-			    refSeq,refSeqStr,*alignment);
+			    refSeq,refSeqStr,*alignment,true);
   LightGraph *G=graphBuilder.getGraph();
   TranscriptPaths paths(*G);
   if(paths.numPaths()!=1)
@@ -279,7 +279,7 @@ void ACEplus::checkProjection(const String &outGff,bool &mapped,
   GraphBuilder graphBuilder(*altTrans,*signals,model,refSeq,refSeqStr,
 			    altSeq,altSeqStr,*revAlignment);
   LightGraph *G=graphBuilder.getGraph();
-  //cout<<*G<<endl;
+  cout<<*G<<endl;
 
   // Extract paths
   TranscriptPaths paths(*G);
