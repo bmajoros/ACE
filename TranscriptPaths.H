@@ -22,6 +22,7 @@ public:
   TranscriptPath *operator[](int);
   void computePosteriors();
   void computeLRs(double denom);
+  void filter(double minScore);
 protected:
   LightGraph &G;
   Vector<TranscriptPath*> paths;

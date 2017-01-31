@@ -35,6 +35,7 @@ public:
 			      const String &source) const;
   void getVertices(Vector<ACEplus_Vertex*> &into);
   void dumpScores();
+  bool isFullyAnnotated() const;
 protected:
   Vector<ACEplus_Edge*> edges;
   double score;

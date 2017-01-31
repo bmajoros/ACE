@@ -1,6 +1,6 @@
 /****************************************************************
  StructureChange.C
- Copyright (C)2015 William H. Majoros (martiandna@gmail.com).
+ Copyright (C)2017 William H. Majoros (martiandna@gmail.com).
  This is OPEN SOURCE SOFTWARE governed by the Gnu General Public
  License (GPL) version 3, as described at www.opensource.org.
  ****************************************************************/
@@ -12,7 +12,8 @@ using namespace BOOM;
 
 
 StructureChange::StructureChange()
-  : exonSkipping(false), intronRetention(false), crypticSite(false)
+  : exonSkipping(false), intronRetention(false), crypticSite(false),
+    crypticExon(false), regulatoryChange(false), deNovoSite(false)
 {
   // ctor
 }
@@ -21,7 +22,8 @@ StructureChange::StructureChange()
 
 bool StructureChange::anyChange()
 {
-  return exonSkipping || intronRetention || crypticSite;
+  return exonSkipping || intronRetention || crypticSite || crypticExon 
+    || regulatoryChange || deNovoSite;
 }
 
 
@@ -31,6 +33,9 @@ StructureChange &StructureChange::operator+=(const StructureChange &other)
   crypticSite=crypticSite || other.crypticSite;
   exonSkipping=exonSkipping || other.exonSkipping;
   intronRetention=intronRetention || other.intronRetention;
+  crypticExon=crypticExon || other.crypticExon;
+  regulatoryChange=regulatoryChange || other.regulatoryChange;
+  deNovoSite=deNovoSite || other.deNovoSite;
 }
 
 
@@ -46,6 +51,18 @@ void StructureChange::printOn(ostream &os) const
   if(intronRetention) {
     if(count>0) os<<",";
     os<<"intron-retention";
+    ++count; }
+  if(deNovoSite) {
+    if(count>0) os<<",";
+    os<<"denovo-site";
+    ++count; }
+  if(crypticExon) {
+    if(count>0) os<<",";
+    os<<"cryptic-exon";
+    ++count; }
+  if(regulatoryChange) {
+    if(count>0) os<<",";
+    os<<"splicing-regulatory-change";
     ++count; }
 }
 

@@ -21,6 +21,10 @@ struct StructureChange {
   bool exonSkipping;
   bool intronRetention;
   bool crypticSite;
+  bool deNovoSite; // a cryptic site created by an alternate allele
+  bool crypticExon; // a new exon created by a de novo splice site
+  bool regulatoryChange; // any change brought about by altering splicing
+                         // regulatory elements
   StructureChange();
   bool anyChange();
   StructureChange &operator+=(const StructureChange &);

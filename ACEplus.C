@@ -290,8 +290,16 @@ void ACEplus::checkProjection(const String &outGff,bool &mapped,
 
   // Extract paths
   TranscriptPaths paths(*G);
-  //if(graphBuilder.mapped()) { // mapped = no structure changes
-  if(graphBuilder.mapped() && paths.numPaths()==1) {
+
+  // Compute posteriors
+  //paths.computePosteriors();
+  const double refLik=getRefLikelihood(refLab,altTrans);
+  paths.computeLRs(refLik);
+  paths.filter(model.MIN_SCORE);
+
+  // Handle cases
+  //if(graphBuilder.mapped() && paths.numPaths()==1) {
+  if(paths.numPaths()==1 && paths[0]->isFullyAnnotated()) {
     if(signals->anyWeakened()) appendBrokenSignals(signals);
     status->prepend("mapped");
     mapped=true;
@@ -334,11 +342,6 @@ void ACEplus::enumerateAlts(TranscriptPaths &paths,
     new Essex::CompositeNode("alternate-structures");
   status->append(altStructNode);
 
-  // Compute posteriors
-  //paths.computePosteriors();
-  const double refLik=getRefLikelihood(refLab,altTrans);
-  paths.computeLRs(refLik);
-
   // Process each path
   for(int i=0 ; i<numPaths ; ++i) {
     TranscriptPath *path=paths[i];
@@ -379,8 +382,8 @@ void ACEplus::processAltStructure(TranscriptPath &path,
   alt.structureChange=path.getChange();
   Vector<ACEplus_Vertex*> vertices;
   path.getVertices(vertices);
-  for(Vector<ACEplus_Vertex*>::iterator cur=vertices.begin(), end=vertices.end() ;
-      cur!=end ; ++cur) {
+  for(Vector<ACEplus_Vertex*>::iterator cur=vertices.begin(), 
+	end=vertices.end() ; cur!=end ; ++cur) {
     ACEplus_Vertex *vertex=*cur;
     if(!vertex->isAnnotated()) {
       TranscriptSignal signal(vertex->getType(),vertex->getBegin(),

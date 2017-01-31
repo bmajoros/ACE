@@ -783,9 +783,10 @@ void GraphBuilder::linkDeNovoLeft(ACEplus_Vertex *v,int id)
       int begin, end, dummy;
       getContextWindow(w,dummy,begin); getContextWindow(v,end,dummy);
       ContentType type=getContentType(w->getType(),v->getType());
-      LightEdge *edge=
+      ACEplus_Edge *edge=
 	newEdge(substrate,type,w,v,begin,end,strand,edgeID);
       if(!edge) continue;
+      edge->getChange().deNovoSite=true;
       edge->setBroken(false);
       graph.addEdge(edge);
       w->addEdgeOut(edge); v->addEdgeIn(edge);
@@ -811,12 +812,12 @@ void GraphBuilder::linkDeNovoRight(ACEplus_Vertex *v,int id)
       int begin, end, dummy;
       getContextWindow(v,dummy,begin); getContextWindow(w,end,dummy);
       ContentType type=getContentType(v->getType(),w->getType());
-      LightEdge *edge=
+      ACEplus_Edge *edge=
 	newEdge(substrate,type,v,w,begin,end,strand,edgeID);
       if(!edge) continue;
+      edge->getChange().deNovoSite=true;
       edge->setBroken(false);
       graph.addEdge(edge);
-      //cout<<*v<<endl;cout<<*w<<endl;
       v->addEdgeOut(edge); w->addEdgeIn(edge);
       if(w->isAnnotated()) break;
     }
@@ -908,7 +909,7 @@ void GraphBuilder::findMateSignals(SignalSensor &sensor,
 
 
 
-void GraphBuilder::linkVertices(LightVertex *left,LightVertex *right)
+ACEplus_Edge *GraphBuilder::linkVertices(LightVertex *left,LightVertex *right)
 {
   if(left->getEnd()>=right->getBegin()) {
     cout<<*left<<"\n"<<*right<<endl;
@@ -922,14 +923,16 @@ void GraphBuilder::linkVertices(LightVertex *left,LightVertex *right)
   const Strand strand=projected.getStrand();
   ContentType type=getContentType(left->getType(),right->getType());
   int edgeID=G->getNumEdges();
-  LightEdge *edge=
+  ACEplus_Edge *edge=
     newEdge(substrate,type,left,right,leftEnd,rightBegin,strand,edgeID);
   if(!edge) return;
   edge->setBroken(false);
   G->addEdge(edge);
   left->addEdgeOut(edge);
   right->addEdgeIn(edge);
+  return edge;
 }
+
 
 
 /* This function scans left of a new donor site to search for a matching
@@ -960,8 +963,9 @@ void GraphBuilder::scanCrypticExonLeft(int of)
     //getContextWindow(newVertex,newBegin,newEnd);
 
     // Link this new vertex to the de novo vertex, to create a cryptic exon
-    //cout<<"NEW VERTEX="<<*newVertex<<endl;
-    linkVertices(newVertex,ofVertex);
+    ACEplus_Edge *edge=linkVertices(newVertex,ofVertex);
+    edge->getChange().crypticExon=true;
+
     // Link this new vertex left to the nearest annotated vertex
     linkVertices(left,newVertex);
   }
@@ -997,7 +1001,8 @@ void GraphBuilder::scanCrypticExonRight(int of)
     //getContextWindow(newVertex,newBegin,newEnd);
 
     // Link this new vertex to the de novo vertex, to create a cryptic exon
-    linkVertices(ofVertex,newVertex);
+    ACEplus_Edge *edge=linkVertices(ofVertex,newVertex);
+    edge->getChange().crypticExon=true;
     
     // Link this new vertex right to the nearest annotated vertex
     linkVertices(newVertex,right);
@@ -1182,7 +1187,9 @@ void GraphBuilder::addExonSkippingEdge(ExonEdge exon)
     for(Vector<int>::iterator cur=acceptors.begin(), end=acceptors.end() ;
 	cur!=end ; ++cur) {
       LightVertex *acceptor=G->getVertex(*cur);
-      linkVertices(donor,acceptor);
+      ACEplus_Edge *edge=linkVertices(donor,acceptor);
+      edge->getChange().exonSkipping=true;
+      edge->getChange().regulatoryChange=true;
     }    
   }
 }
@@ -1288,13 +1295,15 @@ void GraphBuilder::lengthenExonLeft(const Interval &variant,
     for(Vector<LightEdge*>::iterator cur=exonBegin->getEdgesOut().begin(),
 	  end=exonBegin->getEdgesOut().end() ; cur!=end ; ++cur) {
       LightVertex *linkTo=(*cur)->getRight();
-      linkVertices(newVertex,linkTo);}
+      ACEplus_Edge *edge=linkVertices(newVertex,linkTo);
+      edge->getChange().regulatoryChange=true;}
 
     // Add intron edges
     for(Vector<LightEdge*>::iterator cur=exonBegin->getEdgesIn().begin(),
 	  end=exonBegin->getEdgesIn().end() ; cur!=end ; ++cur) {
       LightVertex *linkTo=(*cur)->getLeft();
-      linkVertices(linkTo,newVertex);}
+      ACEplus_Edge *edge=linkVertices(linkTo,newVertex);
+      edge->getChange().regulatoryChange=true;}
   }
 }
 
@@ -1320,13 +1329,15 @@ void GraphBuilder::lengthenExonRight(const Interval &variant,
     for(Vector<LightEdge*>::iterator cur=exonEnd->getEdgesOut().begin(),
 	  end=exonEnd->getEdgesOut().end() ; cur!=end ; ++cur) {
       LightVertex *linkTo=(*cur)->getRight();
-      linkVertices(newVertex,linkTo);}
+      ACEplus_Edge *edge=linkVertices(newVertex,linkTo);
+      edge->getChange().regulatoryChange=true;}
 
     // Add exon edges
     for(Vector<LightEdge*>::iterator cur=exonEnd->getEdgesIn().begin(),
 	  end=exonEnd->getEdgesIn().end() ; cur!=end ; ++cur) {
       LightVertex *linkTo=(*cur)->getLeft();
-      linkVertices(linkTo,newVertex);}
+      ACEplus_Edge *edge=linkVertices(linkTo,newVertex);
+      edge->getChange().regulatoryChange=true;}
   }
 }
 
@@ -1404,13 +1415,15 @@ void GraphBuilder::shortenExonFromTheRight(const Interval &variant,
     for(Vector<LightEdge*>::iterator cur=exonEnd->getEdgesOut().begin(),
 	  end=exonEnd->getEdgesOut().end() ; cur!=end ; ++cur) {
       LightVertex *linkTo=(*cur)->getRight();
-      linkVertices(newVertex,linkTo);}
+      ACEplus_Edge *edge=linkVertices(newVertex,linkTo);
+      edge->getChange().regulatoryChange=true;}
 
     // Add exon edges
     for(Vector<LightEdge*>::iterator cur=exonEnd->getEdgesIn().begin(),
 	  end=exonEnd->getEdgesIn().end() ; cur!=end ; ++cur) {
       LightVertex *linkTo=(*cur)->getLeft();
-      linkVertices(linkTo,newVertex);}
+      ACEplus_Edge *edge=linkVertices(linkTo,newVertex);
+      edge->getChange().regulatoryChange=true;}
   }
 }
 
@@ -1436,13 +1449,15 @@ void GraphBuilder::shortenExonFromTheLeft(const Interval &variant,
     for(Vector<LightEdge*>::iterator cur=exonBegin->getEdgesOut().begin(),
 	  end=exonBegin->getEdgesOut().end() ; cur!=end ; ++cur) {
       LightVertex *linkTo=(*cur)->getRight();
-      linkVertices(newVertex,linkTo);}
+      ACEplus_Edge *edge=linkVertices(newVertex,linkTo);
+      edge->getChange().regulatoryChange=true;}
 
     // Add intron edges
     for(Vector<LightEdge*>::iterator cur=exonBegin->getEdgesIn().begin(),
 	  end=exonBegin->getEdgesIn().end() ; cur!=end ; ++cur) {
       LightVertex *linkTo=(*cur)->getLeft();
-      linkVertices(linkTo,newVertex);}
+      ACEplus_Edge *edge=linkVertices(linkTo,newVertex);
+      edge->getChange().regulatoryChange=true;}
   }
 }
 
@@ -1510,7 +1525,9 @@ void GraphBuilder::proposeCrypticExons(const Interval &variant,
 	continue;
 
       // Create the edge denoting the cryptic exon
-      linkVertices(acceptor,donor);
+      ACEplus_Edge *edge=linkVertices(acceptor,donor);
+      edge->getChange().crypticExon=true;
+      edge->getChange().regulatoryChange=true;
 
       // Create edges for the introns left and right of the cryptic exon
       Vector<int> leftTargets, rightTargets;

@@ -142,3 +142,17 @@ void TranscriptPaths::computePosteriors()
   }
 }
 
+
+
+void TranscriptPaths::filter(double minScore)
+{
+  int n=paths.size();
+  for(int i=0 ; i<n ; ++i)
+    if(paths[i]->getScore()<minScore) {
+      paths.cut(i);
+      --i;
+      --n;
+    }
+}
+
+

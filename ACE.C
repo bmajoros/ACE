@@ -684,6 +684,12 @@ void ACE::listStructureChanges(const AlternativeStructure &s,
       changeNode->append("exon-skipping");
     if(s.structureChange.intronRetention) 
       changeNode->append("intron-retention");
+    if(s.structureChange.deNovoSite) 
+      changeNode->append("de-novo-site");
+    if(s.structureChange.crypticExon) 
+      changeNode->append("cryptic-exon");
+    if(s.structureChange.regulatoryChange) 
+      changeNode->append("splicing-regulatory-change");
     if(msg) { changeNode->append(msg); msg=NULL; }
     if(msg2) changeNode->append(msg2);
   }

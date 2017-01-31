@@ -146,3 +146,13 @@ void TranscriptPath::getVertices(Vector<ACEplus_Vertex*> &into)
 
 
 
+bool TranscriptPath::isFullyAnnotated() const
+{
+  for(Vector<ACEplus_Edge*>::const_iterator cur=edges.begin(), end=edges.end() ;
+      cur!=end ; ++cur)
+    if(!(*cur)->getLeft()->isAnnotated()) return false;
+  return true;
+}
+
+
+

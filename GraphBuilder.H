@@ -102,7 +102,7 @@ protected:
   LightVertex *findAnnotatedVertexRightOf(int of);
   void findMateSignals(SignalSensor &,const Interval &scanWindow,
 		       Vector<ACEplus_Vertex*> &newVertices);
-  void linkVertices(LightVertex *left,LightVertex *right);
+  ACEplus_Edge *linkVertices(LightVertex *left,LightVertex *right);
   void handleExonWeakening(const Vector<Interval> &,Vector<ExonEdge> &exons);
   void handleExonExtension(const Vector<Interval> &,Vector<ExonEdge> &exons);
   void handleExonShortening(const Vector<Interval> &variants,
