@@ -236,10 +236,10 @@ double ACEplus::getRefLikelihood(const Labeling &refLab,
   cout<<"done building graph for ref"<<endl;
   LightGraph *G=graphBuilder.getGraph();
   TranscriptPaths paths(*G,model.MAX_ALT_STRUCTURES);
-  if(paths.numPaths()!=1)
+  if(paths.numPaths()!=1) {
     //throw String("Wrong number of reference paths: ")+paths.numPaths();
     cout<<"number of ref paths = "<<paths.numPaths()<<endl;
-    return NEGATIVE_INFINITY;
+    return NEGATIVE_INFINITY; }
   TranscriptPath *path=paths[0];
   path->computeScore();
   //path->dumpScores();
