@@ -375,6 +375,8 @@ void ACEplus::processAltStructure(TranscriptPath &path,
 			       int whichStructure,
 			       TranscriptSignals &signals)
 {
+  cout<<"PATH="<<path<<endl;
+
   // Make a GffTranscript object
   String transcriptID=
     String("ALT")+whichStructure+"_"+refTrans->getTranscriptId();
@@ -396,6 +398,11 @@ void ACEplus::processAltStructure(TranscriptPath &path,
   // Convert to AlternativeStructure object
   AlternativeStructure alt(transcript,fate);
   alt.structureChange=path.getChange();
+
+  // Check for NMD
+  alt.proteinFate=nmd.predict(*transcript,altSeqStr,alt.ejcDistance);
+
+  // Add any cryptic signals for reporting in output
   Vector<ACEplus_Vertex*> vertices;
   path.getVertices(vertices);
   for(Vector<ACEplus_Vertex*>::iterator cur=vertices.begin(), 

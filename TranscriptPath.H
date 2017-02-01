@@ -37,11 +37,14 @@ public:
   void getVertices(Vector<ACEplus_Vertex*> &into);
   void dumpScores();
   bool isFullyAnnotated() const;
+  void printOn(ostream &) const;
 protected:
   Vector<ACEplus_Edge*> edges;
   double score;
   StructureChange change;
 };
+
+ostream &operator<<(ostream &,const TranscriptPath &);
 
 class TranscriptPathComparator : public Comparator<TranscriptPath*> {
 public:

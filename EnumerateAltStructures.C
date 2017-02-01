@@ -19,7 +19,7 @@ using namespace BOOM;
  ****************************************************************/
 
 AlternativeStructure::AlternativeStructure(GffTranscript *t,ProteinFate fate)
-  : transcript(t), proteinFate(fate), msg(NULL)
+  : transcript(t), proteinFate(fate), msg(NULL), ejcDistance(-1000000)
 {
 }
 

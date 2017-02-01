@@ -11,7 +11,8 @@ using namespace BOOM;
 
 ACEplus_Vertex::ACEplus_Vertex(const String &substrate,SignalType t,int begin,
 			       int end,double score,Strand s,int ID)
-  : LightVertex(substrate,t,begin,end,score,s,ID)
+  : LightVertex(substrate,t,begin,end,score,s,ID),
+    threshold(0.0), refScore(0.0)
 {
   // ctor
 }

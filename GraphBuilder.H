@@ -75,8 +75,10 @@ protected:
 		  Array1D<int> &edgeCounts);
   void pruneUnreachable(LightGraph &G);
   void deleteUnreachable(LightGraph &G,
-			 Array1D<int> &vertexCounts,
-			 Array1D<int> &edgeCounts);
+			 Array1D<int> &vertexLeftCounts,
+			 Array1D<int> &vertexRightCounts,
+			 Array1D<int> &edgeLeftCounts,
+			 Array1D<int> &edgeRightCounts);
   void getContextWindow(LightVertex *v,
 			int &begin,
 			int &end);

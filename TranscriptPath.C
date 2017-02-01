@@ -156,3 +156,21 @@ bool TranscriptPath::isFullyAnnotated() const
 
 
 
+void TranscriptPath::printOn(ostream &os) const
+{
+  for(Vector<ACEplus_Edge*>::const_iterator cur=edges.begin(), 
+	end=edges.end() ; cur!=end ; ++cur) {
+    ACEplus_Edge *edge=*cur;
+    cout<<*edge<<endl;
+  }
+}
+
+
+
+ostream &operator<<(ostream &os,const TranscriptPath &path)
+{
+  path.printOn(os);
+  return os;
+}
+
+

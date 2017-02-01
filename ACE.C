@@ -730,7 +730,7 @@ void ACE::handleProteinFate(const AlternativeStructure &s,
   case NMD_NMD: {       // premature stop codon & NMD
     Essex::CompositeNode *fate=new Essex::CompositeNode("fate");
     fate->append("NMD");
-    fate->append("EJC-distance",s.ejcDistance);
+    fate->append("EJC-distance",s.ejcDistance); // ### always zero -- why?
     node->append(fate);
   }break;
   case NMD_TRUNCATION: {// premature stop codon, truncated protein

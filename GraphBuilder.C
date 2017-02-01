@@ -64,7 +64,7 @@ ACEplus_Edge *GraphBuilder::newEdge(const String &substrate,ContentType type,
 //{ cout<<"edge too short -- ignoring"<<endl; return NULL; }
 
   if(G->edgeExists(substrate,strand,begin,end,type))  {
-    cout<<"edge exists -- ignoring"<<endl;
+    cout<<"edge exists -- ignoring: "<<begin<<"-"<<end<<" "<<type<<endl;
     return NULL;
   }
   return new ACEplus_Edge(substrate,type,from,to,begin,end,strand,ID);
@@ -504,14 +504,12 @@ void GraphBuilder::leftSweep(LightGraph &G,
   todo.push(left);
   while(!todo.isEmpty()) {
     LightVertex *v=todo.pop();
-    //cout<<"LEFTSWEEP "<<todo.size()<<"\t"<<*v<<endl;
     ++vertexCounts[v->getID()];
     Vector<LightEdge*> &edges=v->getEdgesOut();
     for(Vector<LightEdge*>::iterator cur=edges.begin(), end=edges.end() ;
 	cur!=end ; ++cur) {
       LightEdge *edge=*cur;
       ++edgeCounts[edge->getID()];
-      //cout<<"\t"<<v->getBegin()<<" => "<<edge->getRight()->getBegin()<<endl;
       if(edge->getRight()->getBegin()<v->getBegin()) {
 	cout<<*v<<"\n"<<*edge->getRight()<<endl;
 	INTERNAL_ERROR;
@@ -535,14 +533,13 @@ void GraphBuilder::rightSweep(LightGraph &G,
   todo.push(right);
   while(!todo.isEmpty()) {
     LightVertex *v=todo.pop();
-    //cout<<"RIGHTSWEEP "<<todo.size()<<"\t"<<*v<<endl;
     ++vertexCounts[v->getID()];
     Vector<LightEdge*> &edges=v->getEdgesIn();
     for(Vector<LightEdge*>::iterator cur=edges.begin(), end=edges.end() ;
 	cur!=end ; ++cur) {
       LightEdge *edge=*cur;
       ++edgeCounts[edge->getID()];
-      if(vertexCounts[edge->getLeft()->getID()]<2)
+      if(vertexCounts[edge->getLeft()->getID()]==0)
 	todo.push(edge->getLeft());
     }
   }
@@ -551,13 +548,15 @@ void GraphBuilder::rightSweep(LightGraph &G,
 
 
 void GraphBuilder::deleteUnreachable(LightGraph &G,
-				     Array1D<int> &vertexCounts,
-				     Array1D<int> &edgeCounts)
+				     Array1D<int> &vertexLeftCounts,
+				     Array1D<int> &vertexRightCounts,
+				     Array1D<int> &edgeLeftCounts,
+				     Array1D<int> &edgeRightCounts)
 {
-  for(int i=0 ; i<vertexCounts.size() ; ++i) 
-    if(vertexCounts[i]<2) G.dropVertex(i);
-  for(int i=0 ; i<edgeCounts.size() ; ++i) 
-    if(edgeCounts[i]<2) {
+  for(int i=0 ; i<vertexLeftCounts.size() ; ++i) 
+    if(vertexLeftCounts[i]==0 || vertexRightCounts[i]==0) G.dropVertex(i);
+  for(int i=0 ; i<edgeLeftCounts.size() ; ++i) 
+    if(edgeLeftCounts[i]==0 || edgeRightCounts[i]==0) {
       LightEdge *edge=G.getEdge(i);
       edge->getLeft()->dropEdgeOut(edge);
       edge->getRight()->dropEdgeIn(edge);
@@ -569,14 +568,22 @@ void GraphBuilder::deleteUnreachable(LightGraph &G,
 
 void GraphBuilder::pruneUnreachable(LightGraph &G)
 {
-  Array1D<int> vertexCounts(G.getNumVertices()); vertexCounts.setAllTo(0);
-  Array1D<int> edgeCounts(G.getNumEdges()); edgeCounts.setAllTo(0);
+  G.sort();
+  Array1D<int> vertexLeftCounts(G.getNumVertices());
+  Array1D<int> edgeLeftCounts(G.getNumEdges());
+  Array1D<int> vertexRightCounts(G.getNumVertices());
+  Array1D<int> edgeRightCounts(G.getNumEdges());
+  vertexLeftCounts.setAllTo(0);
+  vertexRightCounts.setAllTo(0);
+  edgeLeftCounts.setAllTo(0);
+  edgeRightCounts.setAllTo(0);
   cout<<"leftSweep"<<endl;
-  leftSweep(G,vertexCounts,edgeCounts);
+  leftSweep(G,vertexLeftCounts,edgeLeftCounts);
   cout<<"rightSweep"<<endl;
-  rightSweep(G,vertexCounts,edgeCounts);
+  rightSweep(G,vertexRightCounts,edgeRightCounts);
   cout<<"deleteUnreachable"<<endl;
-  deleteUnreachable(G,vertexCounts,edgeCounts);
+  deleteUnreachable(G,vertexLeftCounts,vertexRightCounts,
+		    edgeLeftCounts,edgeRightCounts);
   cout<<"delete null vertices"<<endl;
   G.deleteNullVertices();
   cout<<"delete null edge"<<endl;
@@ -734,15 +741,14 @@ void GraphBuilder::deNovoSignalSensing(SignalSensor &sensor,
 	   sensor.consensusOccursAt(refSeqStr,refPos+consensusOffset)) {
 	  const double refScore=sensor.getLogP(refSeq,refSeqStr,refPos);
 	  if(altScore-refScore<log(2)) continue;
-	  //cout<<refScore<<"\t"<<altScore<<"\t"<<refSeqStr.substring(refPos,sensorLen)<<"\t"<<altSeqStr.substring(pos,sensorLen)<<"\t"<<refSeqStr.substring(refPos+consensusOffset,consensusLen)<<"\t"<<altSeqStr.substring(pos+consensusOffset,consensusLen)<<endl;
 	}
-	//else cout<<"CIGAR_UNDEFINED\t"<<altScore<<"\t"<<altSeqStr.substring(pos,sensorLen)<<"\t"<<altSeqStr.substring(pos+consensusOffset,consensusLen)<<endl;
 	ACEplus_Vertex *v=newVertex(substrate,signalType,pos+consensusOffset,
 				 pos+consensusOffset+consensusLen,
 				 altScore,strand,G->getNumVertices());
 	if(!v) continue;
 	G->addVertex(v);
 	newVertices.push_back(v);
+	v->setThreshold(threshold);
       }
     }
   }
@@ -922,6 +928,7 @@ void GraphBuilder::findMateSignals(SignalSensor &sensor,
       if(!v) continue;
       G->addVertex(v);
       newVertices.push_back(v);
+      v->setThreshold(sensor.getCutoff());
     }
   }
 }
@@ -1282,12 +1289,14 @@ void GraphBuilder::scan(const Interval &scanWindow,SignalType signalType,
     if(pos+sensorLen>altSeq.getLength()) continue;
     if(sensor.consensusOccursAt(altSeqStr,pos+consensusOffset)) {
       const double altScore=sensor.getLogP(altSeq,altSeqStr,pos);
+      if(altScore<sensor.getCutoff()) continue;
       ACEplus_Vertex *v=newVertex(substrate,signalType,pos+consensusOffset,
 			       pos+consensusOffset+consensusLen,
 			       altScore,strand,G->getNumVertices());
       if(!v) continue;
       G->addVertex(v);
       into.push_back(v);
+      v->setThreshold(sensor.getCutoff());
     }
   }
 }
@@ -1593,7 +1602,6 @@ void GraphBuilder::buildGraph(bool strict)
 
     // Prune away any vertex or edge not reachable from both ends
     cout<<G->getNumVertices()<<" vertices before pruning"<<endl;
-    G->sort();
     pruneUnreachable(*G);
     cout<<G->getNumVertices()<<" vertices after pruning"<<endl;
   }

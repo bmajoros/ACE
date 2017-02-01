@@ -119,10 +119,12 @@ void TranscriptPaths::computeLRs(double denom)
     path->computeScore();
     //cout<<"path->getScore()="<<path->getScore()<<endl;
     const double llr=path->getScore()-denom;
+    /*
     const double lr=exp(llr);
     if(lr>100000)
       cout<<"setting score "<<lr<<" = "<<path->getScore()<<" - "<<denom<<endl;
-    path->setScore(lr);
+    */
+    path->setScore(llr/log(2.0));
   }
 }
 
