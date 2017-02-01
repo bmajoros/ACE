@@ -23,6 +23,7 @@ public:
   void computePosteriors();
   void computeLRs(double denom);
   void filter(double minScore);
+  void sort(); // sorts descending by score
 protected:
   LightGraph &G;
   Vector<TranscriptPath*> paths;

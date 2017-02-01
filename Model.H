@@ -29,6 +29,8 @@ struct Model {
   float MIN_EXON_INTRON_RATIO; // ratio of scores for exon/intron sensors;
                                // below this, exon definition fails
   float MIN_SCORE; // don't report any structure scoring less than this
+  int MAX_ALT_STRUCTURES; // maximum number of alternative structures to
+                          // predict when there are splicing changes
   bool allowExonSkipping, allowIntronRetention, allowCrypticSites;
   bool allowDeNovoSites, allowCrypticExons, allowRegulatoryChanges;
   Model();

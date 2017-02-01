@@ -18,6 +18,7 @@ public:
   ACEplus_Edge(const String &substrate,ContentType,LightVertex *,LightVertex *,
 	    int begin,int end,Strand,int ID);
   StructureChange &getChange();
+  virtual void printOn(ostream &);
 protected:
   StructureChange change;
 };

@@ -54,8 +54,19 @@ ACEplus_Edge *GraphBuilder::newEdge(const String &substrate,ContentType type,
 				 LightVertex *from,LightVertex *to,
 				 int begin,int end,Strand strand,int ID)
 {
-  if(end-begin<10) return NULL;
-  if(G->edgeExists(substrate,strand,begin,end,type)) return NULL;
+  if(end-begin<1) {
+    cout<<*G<<endl;
+    cout<<"edge length < 1 : "<<begin<<"-"<<end<<" "<<substrate<<" "
+	<<type<<endl;
+    return NULL;
+    //INTERNAL_ERROR
+  }
+//{ cout<<"edge too short -- ignoring"<<endl; return NULL; }
+
+  if(G->edgeExists(substrate,strand,begin,end,type))  {
+    cout<<"edge exists -- ignoring"<<endl;
+    return NULL;
+  }
   return new ACEplus_Edge(substrate,type,from,to,begin,end,strand,ID);
 }
 
@@ -194,6 +205,7 @@ void GraphBuilder::buildTranscriptGraph()
   // Create vertices
   ACEplus_Vertex *v=newVertex(substrate,LEFT_TERMINUS,0,0,0.0,strand,0);
   v->setAnnotated(true); v->setBroken(false);
+  ACEplus_Vertex *leftTerminus=v;
   G->addVertex(v);
   for(int i=0 ; i<numSignals ; ++i) {
     const TranscriptSignal &signal=signals[i];
@@ -211,10 +223,10 @@ void GraphBuilder::buildTranscriptGraph()
     G->addVertex(v);
   }
   int L=altSeq.getLength();
-  v=newVertex(substrate,RIGHT_TERMINUS,L,L,0.0,strand,
-		    numSignals+1);
+  v=newVertex(substrate,RIGHT_TERMINUS,L,L,0.0,strand,numSignals+1);
   if(!v) INTERNAL_ERROR;
   v->setAnnotated(true); v->setBroken(false);
+  ACEplus_Vertex *rightTerminus=v;
   G->addVertex(v);
 
   // Create edges
@@ -225,7 +237,12 @@ void GraphBuilder::buildTranscriptGraph()
     getContextWindow(prev,dummy,begin); getContextWindow(next,end,dummy);
     ContentType type=getContentType(prev->getType(),next->getType());
     LightEdge *edge=newEdge(substrate,type,prev,next,begin,end,strand,i);
-    if(!edge) INTERNAL_ERROR;
+    if(!edge) {
+      //ACEplus_Edge *edge=
+      //GraphBuilder::linkVertices(leftTerminus,rightTerminus);
+      return;
+      //INTERNAL_ERROR;
+    }
     edge->setBroken(false);
     prev->addEdgeOut(edge); next->addEdgeIn(edge);
     G->addEdge(edge);

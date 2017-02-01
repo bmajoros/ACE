@@ -9,6 +9,7 @@
 #include <iostream>
 #include "BOOM/Vector.H"
 #include "BOOM/GffTranscript.H"
+#include "BOOM/Comparator.H"
 #include "ACEplus_Edge.H"
 #include "ACEplus_Vertex.H"
 using namespace std;
@@ -40,6 +41,16 @@ protected:
   Vector<ACEplus_Edge*> edges;
   double score;
   StructureChange change;
+};
+
+class TranscriptPathComparator : public Comparator<TranscriptPath*> {
+public:
+  virtual bool equal(TranscriptPath *&a,TranscriptPath *&b) 
+    { return a->getScore()==b->getScore(); }
+  virtual bool greater(TranscriptPath *&a,TranscriptPath *&b) 
+    { return a->getScore()>b->getScore(); }
+  virtual bool less(TranscriptPath *&a,TranscriptPath *&b) 
+    { return a->getScore()<b->getScore(); }
 };
 
 #endif

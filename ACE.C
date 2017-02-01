@@ -581,7 +581,7 @@ Essex::CompositeNode *ACE::processAltStructure(AlternativeStructure &s,
 			      const Labeling &projectedLab)
 {
   Essex::CompositeNode *msg2=NULL, *changeToCoding=NULL, *uORFnode=NULL;
-  if(refTrans->isCoding()) { // see if a new start coding extends the ORF
+  if(refTrans->isCoding()) { // see if a new start codon extends the ORF
     int oldOrfLen, newOrfLen; double oldStartScore, newStartScore;
     String oldStartStr, newStartStr; Essex::CompositeNode *reason;
     GffTranscript *newTranscript=
@@ -692,6 +692,13 @@ void ACE::listStructureChanges(const AlternativeStructure &s,
       changeNode->append("splicing-regulatory-change");
     if(msg) { changeNode->append(msg); msg=NULL; }
     if(msg2) changeNode->append(msg2);
+  }
+  //else throw "no changes";
+  else {
+    Essex::CompositeNode *changeNode=
+      new Essex::CompositeNode("structure-change");
+    changeNode->append("mapped-transcript");
+    node->prepend(changeNode);
   }
 }
 

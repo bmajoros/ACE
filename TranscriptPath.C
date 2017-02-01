@@ -57,13 +57,13 @@ void TranscriptPath::dumpScores()
   int N=edges.size();
   if(N==0) return 0.0;
   score=edges[0]->getLeft()->getScore();
-  //cout<<"initial score="<<score<<endl;
+  cout<<"initial score="<<score<<endl;
   for(int i=0 ; i<N ; ++i) {
     ACEplus_Edge *edge=dynamic_cast<ACEplus_Edge*>(edges[i]);
     score+=edge->getScore()+edge->getRight()->getScore();
-    //cout<<"adding "<<edge->getScore()<<" + "<<edge->getRight()->getScore()<<endl;
+    cout<<"adding "<<edge->getScore()<<" + "<<edge->getRight()->getScore()<<endl;
   }
-  //cout<<"returning "<<score<<endl;
+  cout<<"returning "<<score<<endl;
   return score;
 }
 

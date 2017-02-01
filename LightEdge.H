@@ -36,7 +36,7 @@ public:
   void setScore(int frame,float score);
   void setScore(float score) { setScore(0,score); }
   Strand getStrand() const;
-  void printOn(ostream &);
+  virtual void printOn(ostream &);
   Array1D<int> getFrames() const;
   void subsumeVertexScores();
   int propagateForward(int phase) const;

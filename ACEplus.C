@@ -172,6 +172,7 @@ void ACEplus::processConfig(const String &filename)
   model.allowCrypticExons=config.getBoolOrDie("allow-cryptic-exons");
   model.allowRegulatoryChanges=config.getBoolOrDie("allow-regulatory-changes");
   model.MIN_SCORE=config.getFloatOrDie("min-path-score");
+  model.MAX_ALT_STRUCTURES=config.getIntOrDie("max-alt-structures");
 
   chdir(oldPath);
   delete [] oldPath;
@@ -234,10 +235,11 @@ double ACEplus::getRefLikelihood(const Labeling &refLab,
   LightGraph *G=graphBuilder.getGraph();
   TranscriptPaths paths(*G);
   if(paths.numPaths()!=1)
-    throw String("Wrong number of reference paths: ")+paths.numPaths();
+    //throw String("Wrong number of reference paths: ")+paths.numPaths();
+    return NEGATIVE_INFINITY;
   TranscriptPath *path=paths[0];
   path->computeScore();
-  path->dumpScores();
+  //path->dumpScores();
   double score=path->getScore();
   delete signals; delete G;
   return score;
@@ -294,6 +296,13 @@ void ACEplus::checkProjection(const String &outGff,bool &mapped,
   // Compute posteriors
   //paths.computePosteriors();
   const double refLik=getRefLikelihood(refLab,altTrans);
+  if(!isFinite(refLik)) {
+    status->prepend("bad-annotation");
+    delete altTrans;
+    delete G;
+    delete signals;
+    return;
+  }
   paths.computeLRs(refLik);
   paths.filter(model.MIN_SCORE);
 
@@ -342,11 +351,12 @@ void ACEplus::enumerateAlts(TranscriptPaths &paths,
     new Essex::CompositeNode("alternate-structures");
   status->append(altStructNode);
 
+  // Sort paths by their scores
+  paths.sort();
+
   // Process each path
-  for(int i=0 ; i<numPaths ; ++i) {
+  for(int i=0 ; i<numPaths && i<model.MAX_ALT_STRUCTURES ; ++i) {
     TranscriptPath *path=paths[i];
-    //path->dumpScores();
-    if(path->getScore()<model.MIN_SCORE) continue;
     processAltStructure(*path,altStructNode,projectedLab,i,*signals);
   }
 }

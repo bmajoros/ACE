@@ -8,6 +8,7 @@
 #include "TranscriptPaths.H"
 #include "BOOM/Stack.H"
 #include "BOOM/SumLogProbs.H"
+#include "BOOM/VectorSorter.H"
 using namespace std;
 using namespace BOOM;
 
@@ -54,7 +55,7 @@ void TranscriptPaths::buildPaths()
       cur!=end ; ++cur) {
     LightEdge *edge=*cur;
     TranscriptPath *path=new TranscriptPath();
-    path->addEdge(edge);
+    path->addEdge(dynamic_cast<ACEplus_Edge*>(edge));
     S.push(path);
   }
 
@@ -68,7 +69,7 @@ void TranscriptPaths::buildPaths()
 	cur!=end ; ++cur) {
       LightEdge *edge=*cur;
       TranscriptPath *newPath=path->clone();
-      newPath->addEdge(edge);
+      newPath->addEdge(dynamic_cast<ACEplus_Edge*>(edge));
       S.push(newPath);
     }
     delete path;
@@ -91,7 +92,8 @@ void TranscriptPaths::computeLRs(double denom)
     //cout<<"path->getScore()="<<path->getScore()<<endl;
     const double llr=path->getScore()-denom;
     const double lr=exp(llr);
-    cout<<"setting score "<<lr<<" = "<<path->getScore()<<" - "<<denom<<endl;
+    if(lr>100000)
+      cout<<"setting score "<<lr<<" = "<<path->getScore()<<" - "<<denom<<endl;
     path->setScore(lr);
   }
 }
@@ -155,4 +157,12 @@ void TranscriptPaths::filter(double minScore)
     }
 }
 
+
+
+void TranscriptPaths::sort()
+{
+  TranscriptPathComparator cmp;
+  VectorSorter<TranscriptPath*> sorter(paths,cmp);
+  sorter.sortDescendInPlace();
+}
 
