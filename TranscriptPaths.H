@@ -16,7 +16,7 @@ using namespace BOOM;
 
 class TranscriptPaths {
 public:
-  TranscriptPaths(LightGraph &);
+  TranscriptPaths(LightGraph &,int maxPaths);
   virtual ~TranscriptPaths();
   int numPaths() const;
   TranscriptPath *operator[](int);
@@ -27,7 +27,7 @@ public:
 protected:
   LightGraph &G;
   Vector<TranscriptPath*> paths;
-  void buildPaths();
+  void buildPaths(int maxPaths);
 };
 
 #endif

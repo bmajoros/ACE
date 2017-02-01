@@ -42,9 +42,10 @@ void NBest::buildTrellis()
       const int numPredLinks=predLinks.size();
       for(int j=0 ; j<numPredLinks ; ++j) {
 	TrellisLink &predLink=predLinks[j];
+	if(!currentEdge) INTERNAL_ERROR;
 	const double score=currentEdge->getScore()+predLink.getScore();
 	if(isFinite(score))
-	  Q.insert(TrellisLink(&predLink,currentEdge,score)); } }
+	  Q.insert(TrellisLink(&predLink,currentEdge,score));}}
 
     // Copy selected links into signal's link set
     Array1D<TrellisLink> &linkSet=links[i];
@@ -62,9 +63,7 @@ void NBest::buildTrellis()
     if(!rt->getEdgesOut().isEmpty()) break;
     Array1D<TrellisLink> &rtLinks=links[rCur];
     const int numRtLinks=rtLinks.size();
-    for(int j=0 ; j<numRtLinks ; ++j)
-      termini.push_back(rtLinks[j]);
-  }
+    for(int j=0 ; j<numRtLinks ; ++j) termini.push_back(rtLinks[j]); }
   
   // Return links representing the N best parses
   VectorSorter<TrellisLink> sorter(termini,cmp);
@@ -92,10 +91,9 @@ void NBest::traceback(TrellisLink *endLink,TranscriptPath &path)
   TrellisLink *currentLink=endLink;
   while(currentLink) {
     pStack.push(currentLink);
-    currentLink=currentLink->getPred();
-  }
+    currentLink=currentLink->getPred(); }
   while(!pStack.isEmpty()) {
     TrellisLink *pl=pStack.pop();
-    path.addEdge(dynamic_cast<ACEplus_Edge*>(pl->getEdge()));
-  }
+    LightEdge *edge=pl->getEdge();
+    if(edge) path.addEdge(dynamic_cast<ACEplus_Edge*>(edge)); }
 }

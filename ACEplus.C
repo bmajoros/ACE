@@ -235,7 +235,7 @@ double ACEplus::getRefLikelihood(const Labeling &refLab,
 			    refSeq,refSeqStr,*alignment,true);
   cout<<"done building graph for ref"<<endl;
   LightGraph *G=graphBuilder.getGraph();
-  TranscriptPaths paths(*G);
+  TranscriptPaths paths(*G,model.MAX_ALT_STRUCTURES);
   if(paths.numPaths()!=1)
     //throw String("Wrong number of reference paths: ")+paths.numPaths();
     cout<<"number of ref paths = "<<paths.numPaths()<<endl;
@@ -297,7 +297,7 @@ void ACEplus::checkProjection(const String &outGff,bool &mapped,
 
   // Extract paths
   cout<<"extracting paths"<<endl;
-  TranscriptPaths paths(*G);
+  TranscriptPaths paths(*G,model.MAX_ALT_STRUCTURES);
 
   // Compute posteriors
   //paths.computePosteriors();

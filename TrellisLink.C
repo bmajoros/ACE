@@ -9,17 +9,9 @@
 using namespace std;
 using namespace BOOM;
 
-TrellisLink::TrellisLink(TrellisLink *pred,LightEdge *edge,int phase,
-			 float score)
-  : pred(pred), edge(edge), phase(phase), score(score)
+TrellisLink::TrellisLink(TrellisLink *pred,LightEdge *edge,float score)
+  : pred(pred), edge(edge), score(score)
 {
-}
-
-
-
-int TrellisLink::getPhase() const
-{
-  return phase;
 }
 
 

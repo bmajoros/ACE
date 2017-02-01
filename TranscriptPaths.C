@@ -6,16 +6,17 @@
  ****************************************************************/
 #include <iostream>
 #include "TranscriptPaths.H"
+#include "NBest.H"
 #include "BOOM/Stack.H"
 #include "BOOM/SumLogProbs.H"
 #include "BOOM/VectorSorter.H"
 using namespace std;
 using namespace BOOM;
 
-TranscriptPaths::TranscriptPaths(LightGraph &G)
+TranscriptPaths::TranscriptPaths(LightGraph &G,int maxPaths)
   : G(G)
 {
-  buildPaths();
+  buildPaths(maxPaths);
 }
 
 
@@ -41,7 +42,25 @@ TranscriptPath *TranscriptPaths::operator[](int i)
 
 
 
-void TranscriptPaths::buildPaths()
+void TranscriptPaths::buildPaths(int N)
+{
+  // Extract N best paths using dynamic programming
+  cout<<"running N-best"<<endl;
+  NBest nbest(G,N);
+  cout<<"N-best traceback"<<endl;
+  nbest.getPaths(paths);
+
+  // Score the paths
+  cout<<"scoring paths "<<paths.size()<<endl;
+  for(Vector<TranscriptPath*>::iterator cur=paths.begin(), end=paths.end() ;
+      cur!=end ; ++cur) 
+    (*cur)->computeScore();
+}
+
+
+
+/*
+void TranscriptPaths::buildPaths_OLD()
 {
   const int numVertices=G.getNumVertices();
   if(numVertices<2) return;
@@ -88,6 +107,7 @@ void TranscriptPaths::buildPaths()
       cur!=end ; ++cur) 
     (*cur)->computeScore();
 }
+*/
 
 
 

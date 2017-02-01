@@ -15,8 +15,7 @@ using namespace BOOM;
 
 class TrellisLink {
 public:
-  TrellisLink(TrellisLink * =NULL,LightEdge * =NULL,int phase=0,
-	      float score=0.0);
+  TrellisLink(TrellisLink * =NULL,LightEdge * =NULL,float score=0.0);
   TrellisLink *getPred() const;
   LightEdge *getEdge() const;
   float getScore() const;

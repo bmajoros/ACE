@@ -3417,6 +3417,7 @@ $(OBJ)/ACEplus_Vertex.o:\
 		ACEplus_Vertex.C
 #---------------------------------------------------------
 aceplus: \
+		$(OBJ)/TrellisLink.o \
 		$(OBJ)/NBest.o \
 		$(OBJ)/ACEplus_Vertex.o \
 		$(OBJ)/ACEplus_Edge.o \
@@ -3492,6 +3493,7 @@ aceplus: \
 		$(OBJ)/ProjectionChecker.o \
 		$(OBJ)/aceplus.o
 	$(CC) $(LDFLAGS) -o aceplus \
+		$(OBJ)/TrellisLink.o \
 		$(OBJ)/NBest.o \
 		$(OBJ)/ACEplus_Vertex.o \
 		$(OBJ)/ACEplus_Edge.o \
