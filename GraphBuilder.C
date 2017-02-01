@@ -847,10 +847,12 @@ bool GraphBuilder::allVerticesAreAnnotated()
 {  
   LightGraph &graph=*G;
   const int numVertices=graph.getNumVertices();
+  cout<<numVertices<<" vertices"<<endl;
   for(int i=0 ; i<numVertices ; ++i) {
     LightVertex *v=graph.getVertex(i);
     if(!v->isAnnotated()) return false;
   }
+  cout<<"returning true"<<endl;
   return true;
 }
 
@@ -1597,16 +1599,21 @@ void GraphBuilder::buildGraph(bool strict)
   }
 
   // Score edges
+  cout<<"scoring edges"<<endl;
   const int numEdges=G->getNumEdges();
+  cout<<numEdges<<" edges"<<endl;
   for(int i=0 ; i<numEdges ; ++i) {
     LightEdge *edge=G->getEdge(i);
     scoreEdge(edge);
     if(!isFinite(edge->getScore())) G->dropEdge(i);
   }
+  cout<<"deleting null edges"<<endl;
   G->deleteNullEdges();
 
   // Determine whether mapping was exact
+  cout<<"checking for any changes"<<endl;
   if(!allVerticesAreAnnotated()) changes=true;
+  cout<<"done checking"<<endl;
 }
 
 

@@ -21,12 +21,10 @@ public:
   LightEdge *getEdge() const;
   float getScore() const;
   void setScore(float);
-  int getPhase() const;
 protected:
   TrellisLink *pred;
   LightEdge *edge;
   float score;
-  int phase;
 };
 
 

@@ -47,6 +47,7 @@ void TranscriptPaths::buildPaths()
   if(numVertices<2) return;
 
   // Initialize recursion stack
+  cout<<"init stack"<<endl;
   Stack<TranscriptPath*> S;
   LightVertex *leftTerminus=G.getVertex(0);
   LightVertex *rightTerminus=G.getVertex(numVertices-1);
@@ -60,10 +61,16 @@ void TranscriptPaths::buildPaths()
   }
 
   // Perform depth-first search using stack
+  cout<<"DFS "<<S.size()<<" "<<G.getNumVertices()<<" "<<G.getNumEdges()<<endl;
   while(!S.isEmpty()) {
+    //cout<<"S.size="<<S.size()<<endl;
     TranscriptPath *path=S.pop();
+    //cout<<path<<" has "<<path->numEdges()<<" edges"<<endl;
     LightVertex *v=path->lastVertex();
-    if(v==rightTerminus) { paths.push_back(path); continue; }
+    if(v==rightTerminus) { 
+      //cout<<paths.size()<<" paths"<<endl;
+      paths.push_back(path); 
+      continue; }
     Vector<LightEdge*> &out=v->getEdgesOut();
     for(Vector<LightEdge*>::iterator cur=out.begin(), end=out.end() ;
 	cur!=end ; ++cur) {
@@ -76,6 +83,7 @@ void TranscriptPaths::buildPaths()
   }
 
   // Score the paths
+  cout<<"scoring paths "<<paths.size()<<endl;
   for(Vector<TranscriptPath*>::iterator cur=paths.begin(), end=paths.end() ;
       cur!=end ; ++cur) 
     (*cur)->computeScore();

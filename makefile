@@ -3417,6 +3417,7 @@ $(OBJ)/ACEplus_Vertex.o:\
 		ACEplus_Vertex.C
 #---------------------------------------------------------
 aceplus: \
+		$(OBJ)/NBest.o \
 		$(OBJ)/ACEplus_Vertex.o \
 		$(OBJ)/ACEplus_Edge.o \
 		$(OBJ)/TranscriptPath.o \
@@ -3491,6 +3492,7 @@ aceplus: \
 		$(OBJ)/ProjectionChecker.o \
 		$(OBJ)/aceplus.o
 	$(CC) $(LDFLAGS) -o aceplus \
+		$(OBJ)/NBest.o \
 		$(OBJ)/ACEplus_Vertex.o \
 		$(OBJ)/ACEplus_Edge.o \
 		$(OBJ)/TranscriptPath.o \
@@ -3726,3 +3728,10 @@ test-sumlogprobs: \
 	$(CC) $(LDFLAGS) -o test-sumlogprobs \
 		$(OBJ)/test-sumlogprobs.o \
 		$(LIBS)
+#--------------------------------------------------------
+$(OBJ)/NBest.o:\
+		NBest.C\
+		NBest.H
+	$(CC) $(CFLAGS) -o $(OBJ)/NBest.o -c \
+		NBest.C
+#---------------------------------------------------------

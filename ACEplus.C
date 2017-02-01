@@ -230,12 +230,15 @@ double ACEplus::getRefLikelihood(const Labeling &refLab,
   ProjectionChecker checker(*altTrans,*refTrans,altSeqStr,altSeq,
 			    refSeqStr,refSeq,refLab,sensors);
   TranscriptSignals *signals=checker.findBrokenSpliceSites();
+  cout<<"building graph for ref"<<endl;
   GraphBuilder graphBuilder(*refTrans,*signals,model,altSeq,altSeqStr,
 			    refSeq,refSeqStr,*alignment,true);
+  cout<<"done building graph for ref"<<endl;
   LightGraph *G=graphBuilder.getGraph();
   TranscriptPaths paths(*G);
   if(paths.numPaths()!=1)
     //throw String("Wrong number of reference paths: ")+paths.numPaths();
+    cout<<"number of ref paths = "<<paths.numPaths()<<endl;
     return NEGATIVE_INFINITY;
   TranscriptPath *path=paths[0];
   path->computeScore();
@@ -285,12 +288,15 @@ void ACEplus::checkProjection(const String &outGff,bool &mapped,
   }
 
   // Build graph
+  cout<<"building alt graph"<<endl;
   GraphBuilder graphBuilder(*altTrans,*signals,model,refSeq,refSeqStr,
 			    altSeq,altSeqStr,*revAlignment);
+  cout<<"done building alt graph"<<endl;
   LightGraph *G=graphBuilder.getGraph();
   cout<<*G<<endl;
 
   // Extract paths
+  cout<<"extracting paths"<<endl;
   TranscriptPaths paths(*G);
 
   // Compute posteriors
