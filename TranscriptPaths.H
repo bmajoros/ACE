@@ -16,7 +16,7 @@ using namespace BOOM;
 
 class TranscriptPaths {
 public:
-  TranscriptPaths(LightGraph &,int maxPaths);
+  TranscriptPaths(LightGraph &,int maxPaths,int seqLen);
   virtual ~TranscriptPaths();
   int numPaths() const;
   TranscriptPath *operator[](int);
@@ -26,6 +26,7 @@ public:
   void sort(); // sorts descending by score
 protected:
   LightGraph &G;
+  int seqLen;
   Vector<TranscriptPath*> paths;
   void buildPaths(int maxPaths);
 };

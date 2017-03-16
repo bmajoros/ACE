@@ -132,24 +132,8 @@ void ACEplus::processConfig(const String &filename)
   getcwd(oldPath,PATH_MAX);
   chdir(path.c_str());
 
-  // Load content sensors
+  // Load the config file
   ConfigFile config(filename);
-  contentSensors.setSensor(EXON,loadContentSensor("exon-model",config));
-  contentSensors.setSensor(INTRON,loadContentSensor("intron-model",config));
-  contentSensors.setSensor(INTERGENIC,
-			   loadContentSensor("intergenic-model",config));
-
-  // Load duration distributions
-  model.intergenicLengthDistr=
-    new GeometricDistribution(config.lookupOrDie("mean-intergenic-length").
-			      asInt());
-  model.intronLengthDistr=
-    new GeometricDistribution(config.lookupOrDie("mean-intron-length").
-			      asInt());
-  model.exonLengthDistr=
-    new EmpiricalDistribution(config.lookupOrDie("exon-length-distr"));
-  model.spliceShiftDistr=
-    new EmpiricalDistribution(config.lookupOrDie("splice-shift-distr"));
 
   // Misc initialization
   model.signalSensors=&sensors;
@@ -173,6 +157,36 @@ void ACEplus::processConfig(const String &filename)
   model.allowRegulatoryChanges=config.getBoolOrDie("allow-regulatory-changes");
   model.MIN_SCORE=config.getFloatOrDie("min-path-score");
   model.MAX_ALT_STRUCTURES=config.getIntOrDie("max-alt-structures");
+
+  // Use LLR for splice site signal sensors
+  ContentSensor *bg=loadContentSensor("splice-background-model",config);
+  model.contentSensors->setSpliceBackgroundModel(bg);
+  //model.signalSensors->donorSensor->useLogOdds_anonymous(*bg);
+  //model.signalSensors->acceptorSensor->useLogOdds_anonymous(*bg);
+
+  // Load content sensors
+  contentSensors.setSensor(EXON,loadContentSensor("exon-model",config));
+  contentSensors.setSensor(INTRON,loadContentSensor("intron-model",config));
+  contentSensors.setSensor(INTERGENIC,
+			   loadContentSensor("intergenic-model",config));
+
+  // Load duration distributions
+  model.intergenicLengthDistr=
+    new GeometricDistribution(config.lookupOrDie("mean-intergenic-length").
+			      asInt());
+  model.intronLengthDistr=
+    new GeometricDistribution(config.lookupOrDie("mean-intron-length").
+			      asInt());
+  model.exonLengthDistr=
+    new EmpiricalDistribution(config.lookupOrDie("exon-length-distr"));
+  /*model.spliceShiftDistr=
+    new EmpiricalDistribution(config.lookupOrDie("splice-shift-distr"));*/
+
+  // Load transition probabilities
+  String transitionFile=config.lookupOrDie("transitions");
+  ifstream is(transitionFile.c_str());
+  model.transitions=new Transitions(numSignalTypes(),is,0,0);
+  is.close();
 
   chdir(oldPath);
   delete [] oldPath;
@@ -230,12 +244,13 @@ double ACEplus::getRefLikelihood(const Labeling &refLab,
   ProjectionChecker checker(*altTrans,*refTrans,altSeqStr,altSeq,
 			    refSeqStr,refSeq,refLab,sensors);
   TranscriptSignals *signals=checker.findBrokenSpliceSites();
-  cout<<"building graph for ref"<<endl;
+  //cout<<"building graph for ref"<<endl;
   GraphBuilder graphBuilder(*refTrans,*signals,model,altSeq,altSeqStr,
 			    refSeq,refSeqStr,*alignment,true);
-  cout<<"done building graph for ref"<<endl;
+  //cout<<"done building graph for ref"<<endl;
   LightGraph *G=graphBuilder.getGraph();
-  TranscriptPaths paths(*G,model.MAX_ALT_STRUCTURES);
+  if(!G) return NEGATIVE_INFINITY;
+  TranscriptPaths paths(*G,model.MAX_ALT_STRUCTURES,refSeq.getLength());
   if(paths.numPaths()!=1) {
     //throw String("Wrong number of reference paths: ")+paths.numPaths();
     cout<<"number of ref paths = "<<paths.numPaths()<<endl;
@@ -245,7 +260,8 @@ double ACEplus::getRefLikelihood(const Labeling &refLab,
   //path->dumpScores();
   double score=path->getScore();
   delete signals; delete G;
-  return score;
+  const double L=double(refSeq.getLength());
+  return score/L; // == Lth root in log space
 }
 
 
@@ -271,6 +287,7 @@ void ACEplus::checkProjection(const String &outGff,bool &mapped,
   root->append(altTransEssex);
 
   // Decompose transcript into signals
+  cout<<"ProjectionChecker"<<endl;
   ProjectionChecker checker(*refTrans,*altTrans,refSeqStr,refSeq,
 			    altSeqStr,altSeq,projectedLab,sensors);
   String altProtein;
@@ -293,15 +310,21 @@ void ACEplus::checkProjection(const String &outGff,bool &mapped,
 			    altSeq,altSeqStr,*revAlignment);
   cout<<"done building alt graph"<<endl;
   LightGraph *G=graphBuilder.getGraph();
-  cout<<*G<<endl;
+  if(!G) {
+    status->prepend("exon-too-short");
+    status->prepend("bad-annotation");
+    delete altTrans; delete signals;
+    return; }
+  //cout<<*G<<endl;
 
   // Extract paths
   cout<<"extracting paths"<<endl;
-  TranscriptPaths paths(*G,model.MAX_ALT_STRUCTURES);
+  TranscriptPaths paths(*G,model.MAX_ALT_STRUCTURES,altSeq.getLength());
 
   // Compute posteriors
-  //paths.computePosteriors();
-  const double refLik=getRefLikelihood(refLab,altTrans);
+  cout<<"scoring paths"<<endl;
+  paths.computePosteriors();
+  /*const double refLik=getRefLikelihood(refLab,altTrans);
   if(!isFinite(refLik)) {
     status->prepend("bad-annotation");
     delete altTrans;
@@ -310,9 +333,11 @@ void ACEplus::checkProjection(const String &outGff,bool &mapped,
     return;
   }
   paths.computeLRs(refLik);
+  */
   paths.filter(model.MIN_SCORE);
 
   // Handle cases
+  cout<<"handling cases"<<endl;
   //if(graphBuilder.mapped() && paths.numPaths()==1) {
   if(paths.numPaths()==1 && paths[0]->isFullyAnnotated()) {
     if(signals->anyWeakened()) appendBrokenSignals(signals);
@@ -375,7 +400,7 @@ void ACEplus::processAltStructure(TranscriptPath &path,
 			       int whichStructure,
 			       TranscriptSignals &signals)
 {
-  cout<<"PATH="<<path<<endl;
+  //cout<<"PATH="<<path<<endl;
 
   // Make a GffTranscript object
   String transcriptID=
@@ -383,7 +408,7 @@ void ACEplus::processAltStructure(TranscriptPath &path,
   GffTranscript *transcript=path.toTranscript(transcriptID,
 					      refTrans->getGeneId(),
 					      substrate,refTrans->getStrand(),
-					      "ACEplus");
+					      "ACE+");
 
   // Identify reading frame
   Essex::CompositeNode *startMsg=NULL;
@@ -410,7 +435,7 @@ void ACEplus::processAltStructure(TranscriptPath &path,
     ACEplus_Vertex *vertex=*cur;
     if(!vertex->isAnnotated()) {
       TranscriptSignal signal(vertex->getType(),vertex->getBegin(),
-			      vertex->getScore());
+			      vertex->getRawScore());
       signal.cryptic=true;
       signal.cutoff=vertex->getThreshold();
       signal.seq=vertex->getSeq();

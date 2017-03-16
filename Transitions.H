@@ -11,10 +11,13 @@
 #include <iostream>
 #include "BOOM/String.H"
 #include "BOOM/Array2D.H"
+#include "BOOM/Regex.H"
+#include "BOOM/Exceptions.H"
 #include "SignalType.H"
 
 class Transitions
 {
+  Regex regex;
   BOOM::Array2D<double> matrix;
   float optimism, intronOptimism;
   void load(istream &);

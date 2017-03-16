@@ -6,6 +6,7 @@
  ****************************************************************/
 #include <iostream>
 #include "TranscriptPath.H"
+#include "BOOM/Constants.H"
 using namespace std;
 using namespace BOOM;
 
@@ -45,6 +46,8 @@ void TranscriptPath::computeScore()
   for(int i=0 ; i<N ; ++i) {
     ACEplus_Edge *edge=dynamic_cast<ACEplus_Edge*>(edges[i]);
     score+=edge->getScore()+edge->getRight()->getScore();
+    if(!isFinite(edge->getScore())) cout<<*edge<<endl;
+    if(!isFinite(edge->getRight()->getScore())) cout<<*(edge->getRight())<<endl;
     //cout<<"adding "<<edge->getScore()<<" + "<<edge->getRight()->getScore()<<endl;
   }
   return score;
@@ -161,7 +164,7 @@ void TranscriptPath::printOn(ostream &os) const
   for(Vector<ACEplus_Edge*>::const_iterator cur=edges.begin(), 
 	end=edges.end() ; cur!=end ; ++cur) {
     ACEplus_Edge *edge=*cur;
-    cout<<*edge<<endl;
+    os<<*edge<<endl;
   }
 }
 

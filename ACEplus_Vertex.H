@@ -22,8 +22,12 @@ public:
   double getRefScore() const;
   double getThreshold() const;
   const String &getSeq() const;
+  void setRawScore(double);
+  double getRawScore() const;
 protected:
-  double refScore, threshold;
+  double refScore;  // Score of the corresponding signal in the reference
+  double threshold; // Signal threshold
+  double rawScore;  // probability before normalizing into LLR
   String seq;
 };
 

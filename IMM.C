@@ -153,9 +153,10 @@ double IMM::scoreSingleBase(const Sequence &seq,const BOOM::String &str,
 	    if(model.isDefined(p,index-order,order+1))
 	      return model.lookup(p,index-order,order+1);
 	  }
-	throw BOOM::String("IMM::scoreSingleBase('+',")+
+	return 0.0; // usually caused by N's; marginalizing gives 0.0
+	/*throw BOOM::String("IMM::scoreSingleBase('+',")+
 	  index+",strlen="+strlen(p)+",str="+
-	  str.substring(index,maxOrder)+")";
+	  str.substring(index,maxOrder)+")";*/
       }
 
     case MINUS_STRAND:
@@ -173,10 +174,11 @@ double IMM::scoreSingleBase(const Sequence &seq,const BOOM::String &str,
 	    if(model.isDefined(p,index,order+1)) 
 	      return model.lookup(p,index,order+1);
 	  }
-	throw BOOM::Stacktrace(
+	return 0.0;
+	/*throw BOOM::Stacktrace(
           BOOM::String("IMM::scoreSingleBase('-',")+
 	    index+",strlen="+strlen(p)+",str="+
-	  str.substring(index,maxOrder)+")");
+	    str.substring(index,maxOrder)+")");*/
       }
 
     default: throw BOOM::String(__FILE__)+__LINE__;

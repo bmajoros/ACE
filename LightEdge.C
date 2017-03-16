@@ -89,6 +89,7 @@ String contentTypeString(ContentType type)
 }
 
 
+
 void LightEdge::printOn(ostream &os)
 {
   int supportString=supported ? 1 : 0;

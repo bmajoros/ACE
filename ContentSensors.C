@@ -12,9 +12,34 @@ using namespace BOOM;
 
 
 ContentSensors::ContentSensors()
-  : exonSensor(NULL), intronSensor(NULL), intergenicSensor(NULL)
+  : exonSensor(NULL), intronSensor(NULL), intergenicSensor(NULL),
+    spliceBackgroundModel(NULL)
 {
   //ctor
+}
+
+
+
+ContentSensors::~ContentSensors()
+{
+  delete exonSensor;
+  delete intronSensor;
+  delete intergenicSensor;
+  delete spliceBackgroundModel;
+}
+
+
+
+void ContentSensors::setSpliceBackgroundModel(ContentSensor *s)
+{
+  spliceBackgroundModel=s;
+}
+
+
+
+ContentSensor *ContentSensors::getSpliceBackground()
+{
+  return spliceBackgroundModel;
 }
 
 

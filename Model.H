@@ -10,10 +10,12 @@
 #include "SignalSensors.H"
 #include "ContentSensors.H"
 #include "DiscreteDistribution.H"
+#include "Transitions.H"
 using namespace std;
 using namespace BOOM;
 
 struct Model {
+  Transitions *transitions;
   SignalSensors *signalSensors;
   ContentSensors *contentSensors;
   DiscreteDistribution *exonLengthDistr;

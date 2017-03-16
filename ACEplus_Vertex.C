@@ -61,5 +61,18 @@ const String &ACEplus_Vertex::getSeq() const
 
 
 
+void ACEplus_Vertex::setRawScore(double s)
+{
+  rawScore=s;
+}
+
+
+
+double ACEplus_Vertex::getRawScore() const
+{
+  return rawScore;
+}
+
+
 
 

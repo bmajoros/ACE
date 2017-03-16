@@ -15,7 +15,8 @@
 Transitions::Transitions(int numSignalTypes,istream &is,float optimism,
 			 float intronOptimism)
   : matrix(numSignalTypes,numSignalTypes), optimism(optimism),
-    intronOptimism(intronOptimism)
+    intronOptimism(intronOptimism),
+    regex("\\s*(\\S+)\\s*->\\s*(\\S+)\\s*:\\s*(\\S+)\\s*")
 {
   matrix.setAllTo(0);
   load(is);
@@ -30,15 +31,13 @@ void Transitions::load(istream &is)
     getline(is,line);
     line.trimWhitespace();
     if(!line.empty() && line[0]=='#') continue;
-    BOOM::Vector<BOOM::String> fields;
-    line.getFields(fields," \t");
-    if(fields.size()==5) {
-      SignalType from=stringToSignalType(fields[0]);
-      SignalType to=stringToSignalType(fields[2]);
-      double P=fields[4].asDouble();
+    if(regex.match(line)) {
+      SignalType from=stringToSignalType(regex[1]);
+      SignalType to=stringToSignalType(regex[2]);
+      double P=regex[3].asDouble();
       matrix[from][to]=P;
     }
-    else if(fields.size()>0)
+    else if(!line.empty())
       throw BOOM::String("syntax error in transition file: ")+line;
   }
   //cout<<matrix<<endl;

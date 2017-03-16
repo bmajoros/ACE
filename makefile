@@ -3737,3 +3737,18 @@ $(OBJ)/NBest.o:\
 	$(CC) $(CFLAGS) -o $(OBJ)/NBest.o -c \
 		NBest.C
 #---------------------------------------------------------
+
+#--------------------------------------------------------
+$(OBJ)/get-transitions.o:\
+		get-transitions.C
+	$(CC) $(CFLAGS) -o $(OBJ)/get-transitions.o -c \
+		get-transitions.C
+#---------------------------------------------------------
+get-transitions: \
+		$(OBJ)/SignalType.o \
+		$(OBJ)/get-transitions.o
+	$(CC) $(LDFLAGS) -o get-transitions \
+		$(OBJ)/SignalType.o \
+		$(OBJ)/get-transitions.o \
+		$(LIBS)
+#---------------------------------------------

@@ -49,8 +49,8 @@ protected:
   Model &model;
   LightGraph *G;
   Vector<Interval> variants;
-  void buildGraph(bool strict);
-  void buildTranscriptGraph();
+  bool buildGraph(bool strict);
+  bool buildTranscriptGraph();
   ACEplus_Vertex *newVertex(const String &substrate,SignalType,int begin,
 			    int end,double score,Strand,int ID);
   ACEplus_Edge *newEdge(const String &substrate,ContentType,LightVertex *,

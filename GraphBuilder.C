@@ -24,6 +24,8 @@ using namespace BOOM;
       of its incident edges.
  */
 
+#define SANITY_CHECKS
+
 
 GraphBuilder::GraphBuilder(const GffTranscript &projected,
 			   const TranscriptSignals &signals,
@@ -35,7 +37,7 @@ GraphBuilder::GraphBuilder(const GffTranscript &projected,
     refSeqStr(refSeqStr), altSeq(altSeq), altSeqStr(altSeqStr), G(NULL), 
     changes(false), altToRef(altToRef)
 {
-  buildGraph(strict);
+  if(!buildGraph(strict)) G=NULL;
 }
 
 
@@ -45,7 +47,22 @@ ACEplus_Vertex *GraphBuilder::newVertex(const String &substrate,
 				     double score,Strand strand,int ID)
 {
   if(G->vertexExists(substrate,strand,begin,end,type)) return NULL;
-  return new ACEplus_Vertex(substrate,type,begin,end,score,strand,ID);
+  SignalSensor *sensor=model.signalSensors->findSensor(type);
+  const double rawScore=score;
+  if(sensor) {
+    int offset=sensor->getConsensusOffset();
+    int contextLen=sensor->getContextWindowLength();
+    int windowBegin=begin-offset;
+    ContentSensor *bg=model.contentSensors->getSpliceBackground();
+    double bgScore=bg->scoreSubsequence(altSeq,altSeqStr,windowBegin,
+					contextLen,0);
+    //cout<<"XXX\t"<<exp(score-bgScore)<<endl;
+    score-=bgScore;
+  }
+  ACEplus_Vertex *v=
+    new ACEplus_Vertex(substrate,type,begin,end,score,strand,ID);
+  v->setRawScore(rawScore);
+  return v;
 }
 
 
@@ -54,20 +71,24 @@ ACEplus_Edge *GraphBuilder::newEdge(const String &substrate,ContentType type,
 				 LightVertex *from,LightVertex *to,
 				 int begin,int end,Strand strand,int ID)
 {
+  //cout<<"newEdge("<<type<<")"<<endl;
   if(end-begin<1) {
-    cout<<*G<<endl;
+    //cout<<*G<<endl;
     cout<<"edge length < 1 : "<<begin<<"-"<<end<<" "<<substrate<<" "
 	<<type<<endl;
     return NULL;
     //INTERNAL_ERROR
   }
-//{ cout<<"edge too short -- ignoring"<<endl; return NULL; }
 
   if(G->edgeExists(substrate,strand,begin,end,type))  {
     cout<<"edge exists -- ignoring: "<<begin<<"-"<<end<<" "<<type<<endl;
     return NULL;
   }
-  return new ACEplus_Edge(substrate,type,from,to,begin,end,strand,ID);
+  //cout<<"returning new edge"<<endl;
+  ACEplus_Edge *edge=
+    new ACEplus_Edge(substrate,type,from,to,begin,end,strand,ID);
+  edge->setScore(0);
+  return edge;
 }
 
 
@@ -83,7 +104,7 @@ double GraphBuilder::scoreSignal(SignalType type,int pos,const Sequence &seq,
 				const String &str)
 {
   SignalSensor *sensor=model.signalSensors->findSensor(type);
-  if(!sensor) return 0.0;
+  if(!sensor) return 0.0; // TSS and TES
   if(!sensor->consensusOccursAt(str,pos)) return NEGATIVE_INFINITY;
   int contextLen=sensor->getContextWindowLength();
   int offset=sensor->getConsensusOffset();
@@ -104,7 +125,7 @@ double GraphBuilder::scoreEdge(LightEdge *edge)
   }
   double score=model.contentSensors->score(edge->getType(),edge->getBegin(),
 					  edge->getEnd());
-  if(score>0) cout<<" POSITIVE: "<<edge->getType()<<" "<<edge->getBegin()<<" "<<edge->getEnd()<<endl;
+  //if(score>0) cout<<" POSITIVE: "<<edge->getType()<<" "<<edge->getBegin()<<" "<<edge->getEnd()<<endl;
   if(!isFinite(score)) {
     cerr<<*edge<<endl;
     cerr<<"edge emission score = "<<score<<" begin="<<edge->getBegin()<<
@@ -129,11 +150,14 @@ double GraphBuilder::scoreEdge(LightEdge *edge)
 
   // Get transition probability
   const int numChoices=edge->getLeft()->getEdgesOut().size();
-  double uniform=1.0/numChoices;
-  const double transProb=log(uniform);
+  //double uniform=1.0/numChoices;
+  //const double transProb=log(uniform);
+  SignalType fromType=edge->getLeft()->getSignalType();
+  SignalType toType=edge->getRight()->getSignalType();
+  const double transProb=model.transitions->getLogP(fromType,toType);
   if(!isFinite(transProb)) {
     cerr<<*edge<<endl;
-    cerr<<"trans="<<transProb<<" numChoices="<<numChoices<<endl;
+    cerr<<"trans="<<transProb<<" from="<<fromType<<" to="<<toType<<endl;
     INTERNAL_ERROR;
   }
   //score+=transProb; //###
@@ -194,7 +218,7 @@ ContentType GraphBuilder::getContentType(SignalType from,SignalType to)
 
 
 
-void GraphBuilder::buildTranscriptGraph()
+bool GraphBuilder::buildTranscriptGraph()
 {
   Strand strand=projected.getStrand();
   if(strand!=FORWARD_STRAND) INTERNAL_ERROR;
@@ -217,14 +241,18 @@ void GraphBuilder::buildTranscriptGraph()
     getSignalWindow(type,pos,begin,end,consensusLen);
     ACEplus_Vertex *v=newVertex(substrate,type,pos,pos+consensusLen,score,
 				   strand,i+1);
+#ifdef SANITY_CHECKS
     if(!v) INTERNAL_ERROR;
+#endif
     v->setBroken(signal.isBroken());
     v->setAnnotated(true);
     G->addVertex(v);
   }
   int L=altSeq.getLength();
   v=newVertex(substrate,RIGHT_TERMINUS,L,L,0.0,strand,numSignals+1);
+#ifdef SANITY_CHECKS
   if(!v) INTERNAL_ERROR;
+#endif
   v->setAnnotated(true); v->setBroken(false);
   ACEplus_Vertex *rightTerminus=v;
   G->addVertex(v);
@@ -236,17 +264,21 @@ void GraphBuilder::buildTranscriptGraph()
     int begin, end, dummy;
     getContextWindow(prev,dummy,begin); getContextWindow(next,end,dummy);
     ContentType type=getContentType(prev->getType(),next->getType());
+#ifdef SANITY_CHECKS
+    if(prev->getType()==next->getType()) INTERNAL_ERROR;
+#endif
     LightEdge *edge=newEdge(substrate,type,prev,next,begin,end,strand,i);
     if(!edge) {
       //ACEplus_Edge *edge=
       //GraphBuilder::linkVertices(leftTerminus,rightTerminus);
-      return;
+      return false;
       //INTERNAL_ERROR;
     }
     edge->setBroken(false);
     prev->addEdgeOut(edge); next->addEdgeIn(edge);
     G->addEdge(edge);
   }  
+  return true;
 }
 
 
@@ -311,7 +343,9 @@ void GraphBuilder::handleBrokenSite_cryptic(LightVertex *v)
   if(scanBegin<0) scanBegin=0;
   if(scanEnd>altSeq.getLength()-contextWindowLen)
     scanEnd=altSeq.getLength()-contextWindowLen;
+#ifdef SANITY_CHECKS
   if(scanEnd<0) INTERNAL_ERROR;
+#endif
   Vector<LightEdge*> &in=v->getEdgesIn(), &out=v->getEdgesOut();
   int nextVertexID=G->getNumVertices(), nextEdgeID=G->getNumEdges();
 
@@ -337,6 +371,9 @@ void GraphBuilder::handleBrokenSite_cryptic(LightVertex *v)
 	LightEdge *edge=*cur; LightVertex *left=edge->getLeft();
 	int begin, end, dummy;
 	getContextWindow(left,dummy,begin); getContextWindow(v,end,dummy);
+#ifdef SANITY_CHECKS
+	if(left->getType()==v->getType()) INTERNAL_ERROR;
+#endif
 	ACEplus_Edge *new_Edge=newEdge(substrate,edge->getType(),left,v,
 				   begin,end,strand,nextEdgeID++);
 	if(!new_Edge) continue;
@@ -350,6 +387,9 @@ void GraphBuilder::handleBrokenSite_cryptic(LightVertex *v)
 	LightEdge *edge=*cur; LightVertex *right=edge->getRight();
 	int begin, end, dummy;
 	getContextWindow(v,dummy,begin); getContextWindow(right,end,dummy);
+#ifdef SANITY_CHECKS
+	if(v->getType()==right->getType()) INTERNAL_ERROR;
+#endif
 	ACEplus_Edge *new_Edge=newEdge(substrate,edge->getType(),v,right,
 				   begin,end,strand,nextEdgeID++);
 	if(!new_Edge) continue;
@@ -377,7 +417,9 @@ void GraphBuilder::handleBrokenSite_skipping(LightVertex *v)
 void GraphBuilder::handleSkippingLeft(LightVertex *v)
 {
   Vector<LightEdge*> &in=v->getEdgesIn(), &out=v->getEdgesOut();
+#ifdef SANITY_CHECKS
   if(in.size()!=1 || out.size()!=1) INTERNAL_ERROR;
+#endif
   LightEdge *leftEdge=in[0], *rightEdge=out[0];
   const String &substrate=leftEdge->getSubstrate();
   Strand strand=leftEdge->getStrand();
@@ -390,6 +432,9 @@ void GraphBuilder::handleSkippingLeft(LightVertex *v)
     LightVertex *from=(*cur)->getLeft();
     int begin, end, dummy;
     getContextWindow(from,dummy,begin); getContextWindow(to,end,dummy);
+#ifdef SANITY_CHECKS
+    if(from->getType()==to->getType()) INTERNAL_ERROR;
+#endif
     ACEplus_Edge *new_Edge=
       newEdge(substrate,INTRON,from,to,begin,end,strand,
 	      G->getNumEdges());
@@ -406,7 +451,9 @@ void GraphBuilder::handleSkippingLeft(LightVertex *v)
 void GraphBuilder::handleSkippingRight(LightVertex *v)
 {
   Vector<LightEdge*> &in=v->getEdgesIn(), &out=v->getEdgesOut();
+#ifdef SANITY_CHECKS
   if(in.size()!=1 || out.size()!=1) INTERNAL_ERROR;
+#endif
   LightEdge *leftEdge=in[0], *rightEdge=out[0];
   const String &substrate=leftEdge->getSubstrate();
   Strand strand=leftEdge->getStrand();
@@ -419,6 +466,9 @@ void GraphBuilder::handleSkippingRight(LightVertex *v)
     LightVertex *to=(*cur)->getRight();
     int begin, end, dummy;
     getContextWindow(from,dummy,begin); getContextWindow(to,end,dummy);
+#ifdef SANITY_CHECKS
+    if(from->getType()==to->getType()) INTERNAL_ERROR;
+#endif
     ACEplus_Edge *new_Edge=
       newEdge(substrate,INTRON,from,to,begin,end,strand,
 	      G->getNumEdges());
@@ -445,7 +495,9 @@ void GraphBuilder::handleBrokenSite_retention(LightVertex *v)
 void GraphBuilder::handleRetentionLeft(LightVertex *v)
 {
   Vector<LightEdge*> &in=v->getEdgesIn(), &out=v->getEdgesOut();
+#ifdef SANITY_CHECKS
   if(in.size()!=1 || out.size()!=1) INTERNAL_ERROR;
+#endif
   LightEdge *leftEdge=in[0], *rightEdge=out[0];
   const String &substrate=leftEdge->getSubstrate();
   Strand strand=leftEdge->getStrand();
@@ -456,6 +508,9 @@ void GraphBuilder::handleRetentionLeft(LightVertex *v)
     LightVertex *from=(*cur)->getLeft();
     int begin, end, dummy;
     getContextWindow(from,dummy,begin); getContextWindow(to,end,dummy);
+#ifdef SANITY_CHECKS
+    if(from->getType()==to->getType()) INTERNAL_ERROR;
+#endif
     ACEplus_Edge *new_Edge=
       newEdge(substrate,EXON,from,to,begin,end,strand,G->getNumEdges());
     if(!new_Edge) continue;
@@ -471,7 +526,9 @@ void GraphBuilder::handleRetentionLeft(LightVertex *v)
 void GraphBuilder::handleRetentionRight(LightVertex *v)
 {
   Vector<LightEdge*> &in=v->getEdgesIn(), &out=v->getEdgesOut();
+#ifdef SANITY_CHECKS
   if(in.size()!=1 || out.size()!=1) INTERNAL_ERROR;
+#endif
   LightEdge *leftEdge=in[0], *rightEdge=out[0];
   const String &substrate=leftEdge->getSubstrate();
   Strand strand=leftEdge->getStrand();
@@ -482,6 +539,9 @@ void GraphBuilder::handleRetentionRight(LightVertex *v)
     LightVertex *to=(*cur)->getRight();
     int begin, end, dummy;
     getContextWindow(from,dummy,begin); getContextWindow(to,end,dummy);
+#ifdef SANITY_CHECKS
+    if(from->getType()==to->getType()) INTERNAL_ERROR;
+#endif
     ACEplus_Edge *new_Edge=
       newEdge(substrate,EXON,from,to,begin,end,strand,G->getNumEdges());
     if(!new_Edge) continue;
@@ -577,18 +637,18 @@ void GraphBuilder::pruneUnreachable(LightGraph &G)
   vertexRightCounts.setAllTo(0);
   edgeLeftCounts.setAllTo(0);
   edgeRightCounts.setAllTo(0);
-  cout<<"leftSweep"<<endl;
+  //cout<<"leftSweep"<<endl;
   leftSweep(G,vertexLeftCounts,edgeLeftCounts);
-  cout<<"rightSweep"<<endl;
+  //cout<<"rightSweep"<<endl;
   rightSweep(G,vertexRightCounts,edgeRightCounts);
-  cout<<"deleteUnreachable"<<endl;
+  //cout<<"deleteUnreachable"<<endl;
   deleteUnreachable(G,vertexLeftCounts,vertexRightCounts,
 		    edgeLeftCounts,edgeRightCounts);
-  cout<<"delete null vertices"<<endl;
+  //cout<<"delete null vertices"<<endl;
   G.deleteNullVertices();
-  cout<<"delete null edge"<<endl;
+  //cout<<"delete null edge"<<endl;
   G.deleteNullEdges();
-  cout<<"sort"<<endl;
+  //cout<<"sort"<<endl;
   G.sort();
 }
 
@@ -764,7 +824,9 @@ void GraphBuilder::linkDeNovoVertices(Vector<ACEplus_Vertex*> &newVertices)
 	end=newVertices.end() ; cur!=end ; ++cur) {
     ACEplus_Vertex *v=*cur;
     const int id=v->getID();
+#ifdef SANITY_CHECKS
     if(graph.getVertex(id)!=v) INTERNAL_ERROR;
+#endif
     linkDeNovoLeft(v,id);
     linkDeNovoRight(v,id);
   }
@@ -806,6 +868,9 @@ void GraphBuilder::linkDeNovoLeft(ACEplus_Vertex *v,int id)
       int begin, end, dummy;
       getContextWindow(w,dummy,begin); getContextWindow(v,end,dummy);
       ContentType type=getContentType(w->getType(),v->getType());
+#ifdef SANITY_CHECKS
+      if(w->getType()==v->getType()) INTERNAL_ERROR;
+#endif
       ACEplus_Edge *edge=
 	newEdge(substrate,type,w,v,begin,end,strand,edgeID);
       if(!edge) continue;
@@ -835,6 +900,9 @@ void GraphBuilder::linkDeNovoRight(ACEplus_Vertex *v,int id)
       int begin, end, dummy;
       getContextWindow(v,dummy,begin); getContextWindow(w,end,dummy);
       ContentType type=getContentType(v->getType(),w->getType());
+#ifdef SANITY_CHECKS
+      if(v->getType()==w->getType()) INTERNAL_ERROR;
+#endif
       ACEplus_Edge *edge=
 	newEdge(substrate,type,v,w,begin,end,strand,edgeID);
       if(!edge) continue;
@@ -853,12 +921,12 @@ bool GraphBuilder::allVerticesAreAnnotated()
 {  
   LightGraph &graph=*G;
   const int numVertices=graph.getNumVertices();
-  cout<<numVertices<<" vertices"<<endl;
+  //cout<<numVertices<<" vertices"<<endl;
   for(int i=0 ; i<numVertices ; ++i) {
     LightVertex *v=graph.getVertex(i);
     if(!v->isAnnotated()) return false;
   }
-  cout<<"returning true"<<endl;
+  //cout<<"returning true"<<endl;
   return true;
 }
 
@@ -873,9 +941,11 @@ void GraphBuilder::addCrypticExons(Vector<ACEplus_Vertex*> &newVertices)
     ACEplus_Vertex *v=*cur;
     const SignalType t=v->getType();
     const int id=v->getID();
+    //cout<<"scanning..."<<t<<endl;
     if(isDonor(t)) scanCrypticExonLeft(id);
     else if(isAcceptor(t)) scanCrypticExonRight(id);
     else INTERNAL_ERROR;
+    //cout<<"scan finished"<<endl;
   }
 }
 
@@ -937,10 +1007,12 @@ void GraphBuilder::findMateSignals(SignalSensor &sensor,
 
 ACEplus_Edge *GraphBuilder::linkVertices(LightVertex *left,LightVertex *right)
 {
+#ifdef SANITY_CHECKS
   if(left->getEnd()>=right->getBegin()) {
     cout<<*left<<"\n"<<*right<<endl;
     INTERNAL_ERROR;
   }
+#endif
   int leftBegin, leftEnd, rightBegin, rightEnd;
   getContextWindow(left,leftBegin,leftEnd);
   getContextWindow(right,rightBegin,rightEnd);
@@ -949,9 +1021,12 @@ ACEplus_Edge *GraphBuilder::linkVertices(LightVertex *left,LightVertex *right)
   const Strand strand=projected.getStrand();
   ContentType type=getContentType(left->getType(),right->getType());
   int edgeID=G->getNumEdges();
+#ifdef SANITY_CHECKS
+  if(left->getType()==right->getType()) INTERNAL_ERROR;
+#endif
   ACEplus_Edge *edge=
     newEdge(substrate,type,left,right,leftEnd,rightBegin,strand,edgeID);
-  if(!edge) return;
+  if(!edge) return NULL;
   edge->setBroken(false);
   G->addEdge(edge);
   left->addEdgeOut(edge);
@@ -969,10 +1044,15 @@ void GraphBuilder::scanCrypticExonLeft(int of)
   // First, identify the scanning region
   int ofBegin, ofEnd, leftBegin, leftEnd;
   LightVertex *ofVertex=G->getVertex(of);
+#ifdef SANITY_CHECKS
+  if(ofVertex->getType()!=GT) INTERNAL_ERROR;
+#endif
   getContextWindow(ofVertex,ofBegin,ofEnd);
   LightVertex *left=findAnnotatedVertexLeftOf(of);
+#ifdef SANITY_CHECKS
   if(!left) INTERNAL_ERROR;
-  if(left->getType()!=AG) return;
+#endif
+  if(left->getType()!=GT) return;
   getContextWindow(left,leftBegin,leftEnd);
 
   // Scan
@@ -989,10 +1069,16 @@ void GraphBuilder::scanCrypticExonLeft(int of)
     //getContextWindow(newVertex,newBegin,newEnd);
 
     // Link this new vertex to the de novo vertex, to create a cryptic exon
+#ifdef SANITY_CHECKS
+    if(newVertex->getType()==ofVertex->getType()) INTERNAL_ERROR;
+#endif
     ACEplus_Edge *edge=linkVertices(newVertex,ofVertex);
-    edge->getChange().crypticExon=true;
+    if(edge) edge->getChange().crypticExon=true;
 
     // Link this new vertex left to the nearest annotated vertex
+#ifdef SANITY_CHECKS
+    if(left->getType()==newVertex->getType()) INTERNAL_ERROR;
+#endif
     linkVertices(left,newVertex);
   }
 }
@@ -1007,10 +1093,15 @@ void GraphBuilder::scanCrypticExonRight(int of)
   // First, identify the scanning region
   int ofBegin, ofEnd, rightBegin, rightEnd;
   LightVertex *ofVertex=G->getVertex(of);
+#ifdef SANITY_CHECKS
+  if(ofVertex->getType()!=AG) INTERNAL_ERROR;
+#endif
   getContextWindow(ofVertex,ofBegin,ofEnd);
   LightVertex *right=findAnnotatedVertexRightOf(of);
+#ifdef SANITY_CHECKS
   if(!right) INTERNAL_ERROR;
-  if(right->getType()!=GT) return;
+#endif
+  if(right->getType()!=AG) return;
   getContextWindow(right,rightBegin,rightEnd);
 
   // Scan
@@ -1027,10 +1118,16 @@ void GraphBuilder::scanCrypticExonRight(int of)
     //getContextWindow(newVertex,newBegin,newEnd);
 
     // Link this new vertex to the de novo vertex, to create a cryptic exon
+#ifdef SANITY_CHECKS
+    if(ofVertex->getType()==newVertex->getType()) INTERNAL_ERROR;
+#endif
     ACEplus_Edge *edge=linkVertices(ofVertex,newVertex);
-    edge->getChange().crypticExon=true;
+    if(edge) edge->getChange().crypticExon=true;
     
     // Link this new vertex right to the nearest annotated vertex
+#ifdef SANITY_CHECKS
+    if(newVertex->getType()==right->getType()) INTERNAL_ERROR;
+#endif
     linkVertices(newVertex,right);
   }
 }
@@ -1213,9 +1310,13 @@ void GraphBuilder::addExonSkippingEdge(ExonEdge exon)
     for(Vector<int>::iterator cur=acceptors.begin(), end=acceptors.end() ;
 	cur!=end ; ++cur) {
       LightVertex *acceptor=G->getVertex(*cur);
+#ifdef SANITY_CHECKS
+      if(donor->getType()==acceptor->getType()) INTERNAL_ERROR;
+#endif
       ACEplus_Edge *edge=linkVertices(donor,acceptor);
-      edge->getChange().exonSkipping=true;
-      edge->getChange().regulatoryChange=true;
+      if(edge) {
+	edge->getChange().exonSkipping=true;
+	edge->getChange().regulatoryChange=true; }
     }    
   }
 }
@@ -1323,15 +1424,21 @@ void GraphBuilder::lengthenExonLeft(const Interval &variant,
     for(Vector<LightEdge*>::iterator cur=exonBegin->getEdgesOut().begin(),
 	  end=exonBegin->getEdgesOut().end() ; cur!=end ; ++cur) {
       LightVertex *linkTo=(*cur)->getRight();
+#ifdef SANITY_CHECKS
+      if(newVertex->getType()==linkTo->getType()) INTERNAL_ERROR;
+#endif
       ACEplus_Edge *edge=linkVertices(newVertex,linkTo);
-      edge->getChange().regulatoryChange=true;}
+      if(edge) edge->getChange().regulatoryChange=true;}
 
     // Add intron edges
     for(Vector<LightEdge*>::iterator cur=exonBegin->getEdgesIn().begin(),
 	  end=exonBegin->getEdgesIn().end() ; cur!=end ; ++cur) {
       LightVertex *linkTo=(*cur)->getLeft();
+#ifdef SANITY_CHECKS
+      if(linkTo->getType()==newVertex->getType()) INTERNAL_ERROR;
+#endif
       ACEplus_Edge *edge=linkVertices(linkTo,newVertex);
-      edge->getChange().regulatoryChange=true;}
+      if(edge) edge->getChange().regulatoryChange=true;}
   }
 }
 
@@ -1357,15 +1464,21 @@ void GraphBuilder::lengthenExonRight(const Interval &variant,
     for(Vector<LightEdge*>::iterator cur=exonEnd->getEdgesOut().begin(),
 	  end=exonEnd->getEdgesOut().end() ; cur!=end ; ++cur) {
       LightVertex *linkTo=(*cur)->getRight();
+#ifdef SANITY_CHECKS
+      if(newVertex->getType()==linkTo->getType()) INTERNAL_ERROR;
+#endif
       ACEplus_Edge *edge=linkVertices(newVertex,linkTo);
-      edge->getChange().regulatoryChange=true;}
+      if(edge) edge->getChange().regulatoryChange=true;}
 
     // Add exon edges
     for(Vector<LightEdge*>::iterator cur=exonEnd->getEdgesIn().begin(),
 	  end=exonEnd->getEdgesIn().end() ; cur!=end ; ++cur) {
       LightVertex *linkTo=(*cur)->getLeft();
+#ifdef SANITY_CHECKS
+      if(linkTo->getType()==newVertex->getType()) INTERNAL_ERROR;
+#endif
       ACEplus_Edge *edge=linkVertices(linkTo,newVertex);
-      edge->getChange().regulatoryChange=true;}
+      if(edge) edge->getChange().regulatoryChange=true;}
   }
 }
 
@@ -1443,15 +1556,21 @@ void GraphBuilder::shortenExonFromTheRight(const Interval &variant,
     for(Vector<LightEdge*>::iterator cur=exonEnd->getEdgesOut().begin(),
 	  end=exonEnd->getEdgesOut().end() ; cur!=end ; ++cur) {
       LightVertex *linkTo=(*cur)->getRight();
+#ifdef SANITY_CHECKS
+      if(newVertex->getType()==linkTo->getType()) INTERNAL_ERROR;
+#endif
       ACEplus_Edge *edge=linkVertices(newVertex,linkTo);
-      edge->getChange().regulatoryChange=true;}
+      if(edge) edge->getChange().regulatoryChange=true;}
 
     // Add exon edges
     for(Vector<LightEdge*>::iterator cur=exonEnd->getEdgesIn().begin(),
 	  end=exonEnd->getEdgesIn().end() ; cur!=end ; ++cur) {
       LightVertex *linkTo=(*cur)->getLeft();
+#ifdef SANITY_CHECKS
+      if(linkTo->getType()==newVertex->getType()) INTERNAL_ERROR;
+#endif
       ACEplus_Edge *edge=linkVertices(linkTo,newVertex);
-      edge->getChange().regulatoryChange=true;}
+      if(edge) edge->getChange().regulatoryChange=true;}
   }
 }
 
@@ -1477,15 +1596,21 @@ void GraphBuilder::shortenExonFromTheLeft(const Interval &variant,
     for(Vector<LightEdge*>::iterator cur=exonBegin->getEdgesOut().begin(),
 	  end=exonBegin->getEdgesOut().end() ; cur!=end ; ++cur) {
       LightVertex *linkTo=(*cur)->getRight();
+#ifdef SANITY_CHECKS
+      if(newVertex->getType()==linkTo->getType()) INTERNAL_ERROR;
+#endif
       ACEplus_Edge *edge=linkVertices(newVertex,linkTo);
-      edge->getChange().regulatoryChange=true;}
+      if(edge) edge->getChange().regulatoryChange=true;}
 
     // Add intron edges
     for(Vector<LightEdge*>::iterator cur=exonBegin->getEdgesIn().begin(),
 	  end=exonBegin->getEdgesIn().end() ; cur!=end ; ++cur) {
       LightVertex *linkTo=(*cur)->getLeft();
+#ifdef SANITY_CHECKS
+      if(linkTo->getType()==newVertex->getType()) INTERNAL_ERROR;
+#endif
       ACEplus_Edge *edge=linkVertices(linkTo,newVertex);
-      edge->getChange().regulatoryChange=true;}
+      if(edge) edge->getChange().regulatoryChange=true;}
   }
 }
 
@@ -1553,9 +1678,13 @@ void GraphBuilder::proposeCrypticExons(const Interval &variant,
 	continue;
 
       // Create the edge denoting the cryptic exon
+#ifdef SANITY_CHECKS
+      if(acceptor->getType()==donor->getType()) INTERNAL_ERROR;
+#endif
       ACEplus_Edge *edge=linkVertices(acceptor,donor);
-      edge->getChange().crypticExon=true;
-      edge->getChange().regulatoryChange=true;
+      if(edge) {
+	edge->getChange().crypticExon=true;
+	edge->getChange().regulatoryChange=true;}
 
       // Create edges for the introns left and right of the cryptic exon
       Vector<int> leftTargets, rightTargets;
@@ -1564,11 +1693,17 @@ void GraphBuilder::proposeCrypticExons(const Interval &variant,
       for(Vector<int>::const_iterator cur=leftTargets.begin(), end=
 	    leftTargets.end() ; cur!=end ; ++cur) {
 	LightVertex *v=G->getVertex(*cur);
+#ifdef SANITY_CHECKS
+	if(v->getType()==acceptor->getType()) INTERNAL_ERROR;
+#endif
 	if(acceptor->getBegin()-v->getEnd()>=model.MIN_INTRON_LEN)
 	  linkVertices(v,acceptor); }
       for(Vector<int>::const_iterator cur=rightTargets.begin(), end=
 	    rightTargets.end() ; cur!=end ; ++cur) {
 	LightVertex *v=G->getVertex(*cur);
+#ifdef SANITY_CHECKS
+	if(donor->getType()==v->getType()) INTERNAL_ERROR;
+#endif
 	if(v->getBegin()-donor->getEnd()>=model.MIN_INTRON_LEN)
 	  linkVertices(donor,v); }
     }
@@ -1577,11 +1712,11 @@ void GraphBuilder::proposeCrypticExons(const Interval &variant,
 
 
 
-void GraphBuilder::buildGraph(bool strict)
+bool GraphBuilder::buildGraph(bool strict)
 {
   // First, build a basic graph from the projected annotation
-  cout<<"building initial graph"<<endl;
-  buildTranscriptGraph();
+  if(!buildTranscriptGraph()) return false;
+  //cout<<"GRAPH 1\n"<<*G<<endl;
   cout<<G->getNumVertices()<<" vertices in graph"<<endl;
 
   if(!strict) {
@@ -1602,6 +1737,7 @@ void GraphBuilder::buildGraph(bool strict)
 
     // Prune away any vertex or edge not reachable from both ends
     cout<<G->getNumVertices()<<" vertices before pruning"<<endl;
+    //cout<<*G<<endl;
     pruneUnreachable(*G);
     cout<<G->getNumVertices()<<" vertices after pruning"<<endl;
   }
@@ -1622,6 +1758,7 @@ void GraphBuilder::buildGraph(bool strict)
   cout<<"checking for any changes"<<endl;
   if(!allVerticesAreAnnotated()) changes=true;
   cout<<"done checking"<<endl;
+  return true;
 }
 
 

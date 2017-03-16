@@ -13,8 +13,8 @@
 using namespace std;
 using namespace BOOM;
 
-TranscriptPaths::TranscriptPaths(LightGraph &G,int maxPaths)
-  : G(G)
+TranscriptPaths::TranscriptPaths(LightGraph &G,int maxPaths,int seqLen)
+  : G(G), seqLen(seqLen)
 {
   buildPaths(maxPaths);
 }
@@ -45,13 +45,13 @@ TranscriptPath *TranscriptPaths::operator[](int i)
 void TranscriptPaths::buildPaths(int N)
 {
   // Extract N best paths using dynamic programming
-  cout<<"running N-best"<<endl;
+  //cout<<"running N-best"<<endl;
   NBest nbest(G,N);
-  cout<<"N-best traceback"<<endl;
+  //cout<<"N-best traceback"<<endl;
   nbest.getPaths(paths);
 
   // Score the paths
-  cout<<"scoring paths "<<paths.size()<<endl;
+  //cout<<"scoring paths "<<paths.size()<<endl;
   for(Vector<TranscriptPath*>::iterator cur=paths.begin(), end=paths.end() ;
       cur!=end ; ++cur) 
     (*cur)->computeScore();
@@ -113,18 +113,20 @@ void TranscriptPaths::buildPaths_OLD()
 
 void TranscriptPaths::computeLRs(double denom)
 {
+  const double L=double(seqLen);
   int numPaths=paths.size();
   for(int i=0 ; i<numPaths ; ++i) {
     TranscriptPath *path=paths[i];
     path->computeScore();
     //cout<<"path->getScore()="<<path->getScore()<<endl;
-    const double llr=path->getScore()-denom;
+    const double llr=path->getScore()/L-denom;
     /*
     const double lr=exp(llr);
     if(lr>100000)
       cout<<"setting score "<<lr<<" = "<<path->getScore()<<" - "<<denom<<endl;
     */
-    path->setScore(llr/log(2.0));
+    //path->setScore(llr/log(2.0)); // convert to log base 2
+    path->setScore(exp(llr));
   }
 }
 

@@ -13,7 +13,7 @@ using namespace BOOM;
 Model::Model()
   : signalSensors(NULL), contentSensors(NULL), exonLengthDistr(NULL),
     intronLengthDistr(NULL), intergenicLengthDistr(NULL),
-    spliceShiftDistr(NULL)
+    spliceShiftDistr(NULL), transitions(NULL)
 {
   // ctor
 }
@@ -22,6 +22,7 @@ Model::Model()
 
 Model::~Model()
 {
+  delete transitions;
   delete exonLengthDistr;
   delete intronLengthDistr;
   delete intergenicLengthDistr;
