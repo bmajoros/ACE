@@ -49,6 +49,7 @@ ACEplus_Vertex *GraphBuilder::newVertex(const String &substrate,
   if(G->vertexExists(substrate,strand,begin,end,type)) return NULL;
   SignalSensor *sensor=model.signalSensors->findSensor(type);
   const double rawScore=score;
+  String signalStr;
   if(sensor) {
     int offset=sensor->getConsensusOffset();
     int contextLen=sensor->getContextWindowLength();
@@ -56,12 +57,13 @@ ACEplus_Vertex *GraphBuilder::newVertex(const String &substrate,
     ContentSensor *bg=model.contentSensors->getSpliceBackground();
     double bgScore=bg->scoreSubsequence(altSeq,altSeqStr,windowBegin,
 					contextLen,0);
-    //cout<<"XXX\t"<<exp(score-bgScore)<<endl;
-    score-=bgScore;
+    score-=bgScore; 
+    signalStr=SignalPrinter::print(*sensor,windowBegin,altSeqStr);
   }
   ACEplus_Vertex *v=
     new ACEplus_Vertex(substrate,type,begin,end,score,strand,ID);
   v->setRawScore(rawScore);
+  v->setSeq(signalStr);
   return v;
 }
 
