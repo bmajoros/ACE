@@ -346,12 +346,14 @@ void ACEplus::checkProjection(const String &outGff,bool &mapped,
     if(signals->anyWeakened()) appendBrokenSignals(signals);
     status->prepend("mapped");
     mapped=true;
+    //altTransEssex->setAttribute("score","1");
     if(refTrans->isCoding()) 
       handleCoding(altTrans,checker,projectedLab);
     else
       handleNoncoding(altTrans);
   }
   else { // Enumerate alternative structures
+    //altTransEssex->setAttribute("score","0");
     enumerateAlts(paths,altTransEssex,signals,altTrans,osACE,refLab,
 		  projectedLab);
   }
