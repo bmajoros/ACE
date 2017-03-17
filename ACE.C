@@ -301,7 +301,7 @@ Essex::Node *ACE::signalNode(const String &tag,const String &signal,
   Essex::CompositeNode *node=new Essex::CompositeNode(tag);
   node->append(signal);
   node->append(float(score));
-  node->append("cutoff:"); node->append(float(cutoff));
+  node->append("threshold:"); node->append(float(cutoff));
   return node;
 }
 
@@ -685,7 +685,7 @@ void ACE::listStructureChanges(const AlternativeStructure &s,
     if(s.structureChange.intronRetention) 
       changeNode->append("intron-retention");
     if(s.structureChange.deNovoSite) 
-      changeNode->append("de-novo-site");
+      changeNode->append("denovo-site");
     if(s.structureChange.crypticExon) 
       changeNode->append("cryptic-exon");
     if(s.structureChange.regulatoryChange) 

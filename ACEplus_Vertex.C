@@ -12,9 +12,23 @@ using namespace BOOM;
 ACEplus_Vertex::ACEplus_Vertex(const String &substrate,SignalType t,int begin,
 			       int end,double score,Strand s,int ID)
   : LightVertex(substrate,t,begin,end,score,s,ID),
-    threshold(0.0), refScore(0.0)
+    threshold(0.0), refScore(0.0), denovo(false)
 {
   // ctor
+}
+
+
+
+void ACEplus_Vertex::setDeNovo()
+{
+  denovo=true;
+}
+
+
+
+bool ACEplus_Vertex::isDeNovo() const
+{
+  return denovo;
 }
 
 

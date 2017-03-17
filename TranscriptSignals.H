@@ -24,9 +24,10 @@ struct TranscriptSignal {
   SignalType type; // GT, AG, TSS, TES
   float score, refScore, cutoff;
   int pos;
-  bool broken;
-  bool cryptic;
-  bool weakened;
+  bool broken;  // existed previously and was functional, but is now broken
+  bool cryptic; // existed previously but wasn't annotated as functional
+  bool denovo;  // didn't exist previously but does now
+  bool weakened;// existed previously, is still functional but is weaker
   String seq;
   SignalType getType() { return type; }
   int getPos() { return pos; }

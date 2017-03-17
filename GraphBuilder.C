@@ -43,10 +43,15 @@ GraphBuilder::GraphBuilder(const GffTranscript &projected,
 
 
 ACEplus_Vertex *GraphBuilder::newVertex(const String &substrate,
-				     SignalType type,int begin,int end,
-				     double score,Strand strand,int ID)
+					SignalType type,int begin,int end,
+					double score,Strand strand,int ID,
+					bool denovo)
 {
-  if(G->vertexExists(substrate,strand,begin,end,type)) return NULL;
+  LightVertex *exists=G->vertexExists(substrate,strand,begin,end,type);
+  if(exists) {
+    if(denovo) dynamic_cast<ACEplus_Vertex*>(exists)->setDeNovo();
+    return NULL;
+  }
   SignalSensor *sensor=model.signalSensors->findSensor(type);
   const double rawScore=score;
   String signalStr;
@@ -64,6 +69,7 @@ ACEplus_Vertex *GraphBuilder::newVertex(const String &substrate,
     new ACEplus_Vertex(substrate,type,begin,end,score,strand,ID);
   v->setRawScore(rawScore);
   v->setSeq(signalStr);
+  if(denovo) v->setDeNovo();
   return v;
 }
 
@@ -802,11 +808,14 @@ void GraphBuilder::deNovoSignalSensing(SignalSensor &sensor,
 	if(refPos!=CIGAR_UNDEFINED && refPos+sensorLen<=refSeq.getLength() &&
 	   sensor.consensusOccursAt(refSeqStr,refPos+consensusOffset)) {
 	  const double refScore=sensor.getLogP(refSeq,refSeqStr,refPos);
-	  if(altScore-refScore<log(2)) continue;
+	  if(refScore>=threshold) continue; // ref already had a signal there
+	  if(altScore-refScore<log(2)) continue; // less than a 2-fold increase
 	}
+	if(altScore<threshold+log(2)) continue; // must be >= 2*threshold
 	ACEplus_Vertex *v=newVertex(substrate,signalType,pos+consensusOffset,
-				 pos+consensusOffset+consensusLen,
-				 altScore,strand,G->getNumVertices());
+				    pos+consensusOffset+consensusLen,
+				    altScore,strand,G->getNumVertices(),
+				    true);
 	if(!v) continue;
 	G->addVertex(v);
 	newVertices.push_back(v);

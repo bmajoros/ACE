@@ -422,8 +422,8 @@ void LightGraph::deleteDuplicates()
 
 
 
-bool LightGraph::vertexExists(const String &substrate,Strand strand,
-			      int begin,int end,SignalType type) const
+LightVertex *LightGraph::vertexExists(const String &substrate,Strand strand,
+				      int begin,int end,SignalType type) const
 {
   for(Vector<LightVertex*>::const_iterator cur=vertices.begin(), End=
 	vertices.end() ; cur!=End ; ++cur) {
@@ -432,15 +432,15 @@ bool LightGraph::vertexExists(const String &substrate,Strand strand,
        strand==other->getStrand() &&
        begin==other->getBegin() &&
        end==other->getEnd() &&
-       type==other->getType()) return true;
+       type==other->getType()) return other;
   }
-  return false;
+  return NULL;
 }
 
 
 
-bool LightGraph::edgeExists(const String &substrate,Strand strand,
-			    int begin,int end,ContentType type) const
+LightEdge *LightGraph::edgeExists(const String &substrate,Strand strand,
+				  int begin,int end,ContentType type) const
 {
   for(Vector<LightEdge*>::const_iterator cur=edges.begin(), End=
 	edges.end() ; cur!=End ; ++cur) {
@@ -449,8 +449,8 @@ bool LightGraph::edgeExists(const String &substrate,Strand strand,
        strand==other->getStrand() &&
        begin==other->getBegin() &&
        end==other->getEnd() &&
-       type==other->getType()) return true;
+       type==other->getType()) return other;
   }
-  return false;
+  return NULL;
 }
 

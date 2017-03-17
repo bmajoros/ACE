@@ -158,6 +158,9 @@ void ACEplus::processConfig(const String &filename)
   model.MIN_SCORE=config.getFloatOrDie("min-path-score");
   model.MAX_ALT_STRUCTURES=config.getIntOrDie("max-alt-structures");
 
+  //cout<<"SETTING MIN_SCORE to 0.0!!!"<<endl;
+  //model.MIN_SCORE=0.0;
+
   // Use LLR for splice site signal sensors
   ContentSensor *bg=loadContentSensor("splice-background-model",config);
   model.contentSensors->setSpliceBackgroundModel(bg);
@@ -436,7 +439,8 @@ void ACEplus::processAltStructure(TranscriptPath &path,
     if(!vertex->isAnnotated()) {
       TranscriptSignal signal(vertex->getType(),vertex->getBegin(),
 			      vertex->getRawScore());
-      signal.cryptic=true;
+      if(vertex->isDeNovo()) signal.denovo=true;
+      else signal.cryptic=true;
       signal.cutoff=vertex->getThreshold();
       signal.seq=vertex->getSeq();
       alt.crypticSignals.push_back(signal);

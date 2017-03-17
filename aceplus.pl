@@ -36,7 +36,7 @@ system("hostname");
 my $QUIET=$opt_q ? "-q" : "";
 my $DEBUG=0; # THIS ALSO TERMINATES THE SCRIPT AFTER THE FIRST GENE
 my $MAX_TRANSCRIPTS=-1;
-my $STOP_AFTER; #="ENST00000450315.3";
+my $STOP_AFTER; #="ENST00000250572.8";
 my $ACE=$ENV{"ACEPLUS"};
 my $refFastaTemp=TempFilename::generate();
 my $altFastaTemp=TempFilename::generate();

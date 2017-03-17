@@ -16,7 +16,8 @@ using namespace BOOM;
                     struct TranscriptSignal
  ****************************************************************/
 TranscriptSignal::TranscriptSignal(SignalType t,int pos,float score)
-  : type(t), score(score), pos(pos), broken(false), cryptic(false)
+  : type(t), score(score), pos(pos), broken(false), cryptic(false),
+    denovo(false)
 {
   // ctor
 }

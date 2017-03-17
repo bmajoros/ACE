@@ -24,11 +24,14 @@ public:
   const String &getSeq() const;
   void setRawScore(double);
   double getRawScore() const;
+  void setDeNovo();
+  bool isDeNovo() const;
 protected:
   double refScore;  // Score of the corresponding signal in the reference
   double threshold; // Signal threshold
   double rawScore;  // probability before normalizing into LLR
   String seq;
+  bool denovo;
 };
 
 #endif

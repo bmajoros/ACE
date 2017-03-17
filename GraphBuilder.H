@@ -52,7 +52,8 @@ protected:
   bool buildGraph(bool strict);
   bool buildTranscriptGraph();
   ACEplus_Vertex *newVertex(const String &substrate,SignalType,int begin,
-			    int end,double score,Strand,int ID);
+			    int end,double score,Strand,int ID,
+			    bool denovo=false);
   ACEplus_Edge *newEdge(const String &substrate,ContentType,LightVertex *,
 		     LightVertex *,int begin,int end,Strand,int ID);
   double scoreSignal(SignalType,int pos,const Sequence &,const String &);

@@ -44,10 +44,10 @@ public:
   void deleteDuplicates();
   void deleteVertex(int index); // dangerous! invalidates indices!
   void deleteEdge(int index); // dangerous! invalidates indices!
-  bool vertexExists(const String &substrate,Strand,int begin,int end,
-		    SignalType) const;
-  bool edgeExists(const String &substrate,Strand,int begin,int end,
-		  ContentType) const;
+  LightVertex *vertexExists(const String &substrate,Strand,int begin,int end,
+			    SignalType) const;
+  LightEdge *edgeExists(const String &substrate,Strand,int begin,int end,
+			ContentType) const;
 protected:
   Regex leftRegex, rightRegex, edgeIdRegex, annoRegex, IdRegex;
   Vector<LightVertex*> vertices;

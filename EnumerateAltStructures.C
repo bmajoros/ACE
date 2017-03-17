@@ -39,7 +39,8 @@ void AlternativeStructure::reportCrypticSites(Essex::CompositeNode *parent,
   for(Vector<TranscriptSignal>::const_iterator cur=crypticSignals.begin(),
 	end=crypticSignals.end() ; cur!=end ; ++cur) {
     const TranscriptSignal &signal=*cur;
-    Essex::CompositeNode *node=new Essex::CompositeNode("cryptic-site");
+    const String nodeLabel=signal.denovo ? "denovo-site" : "cryptic-site";
+    Essex::CompositeNode *node=new Essex::CompositeNode(nodeLabel);
     String typeString=signal.getType()==GT ? "donor" : "acceptor";
     node->append(typeString);
     int pos=signal.getPos();
