@@ -57,7 +57,7 @@ protected:
   ACEplus_Edge *newEdge(const String &substrate,ContentType,LightVertex *,
 		     LightVertex *,int begin,int end,Strand,int ID);
   double scoreSignal(SignalType,int pos,const Sequence &,const String &);
-  double scoreEdge(LightEdge *);
+  double scoreEdge(ACEplus_Edge *);
   void getSignalWindow(SignalType,int consensusPos,int &windowBegin,
 		       int &windowEnd,int &consensusLength);
   ContentType getContentType(SignalType,SignalType);
@@ -133,6 +133,7 @@ protected:
   void proposeCrypticExons(const Interval &variant,
 			   const ExonEdge &prevExon,
 			   const ExonEdge &nextExon);
+  void inspectEdgeScore(ACEplus_Edge *,const String &label);
 };
 
 #endif

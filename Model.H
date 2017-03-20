@@ -22,6 +22,10 @@ struct Model {
   DiscreteDistribution *intronLengthDistr;
   DiscreteDistribution *intergenicLengthDistr;
   DiscreteDistribution *spliceShiftDistr;
+  int maxIntronRetentionLen;
+  float minIntronRetentionLLR;
+  int maxDeNovoExonLen;
+  float minDeNovoExonLLR;
   int MAX_SPLICE_SHIFT, MIN_EXON_LEN, MIN_INTRON_LEN, NMD_DISTANCE_PARM;
   int MAX_CRYPTIC_EXON_LEN; // maximum length of a cryptic exon
   float EXON_STRENGTHENING_THRESHOLD; // min ratio of alt/ref for intronic
@@ -33,6 +37,7 @@ struct Model {
   float MIN_SCORE; // don't report any structure scoring less than this
   int MAX_ALT_STRUCTURES; // maximum number of alternative structures to
                           // predict when there are splicing changes
+  float coefDenovoExon;   // adjustment to transition prob for de novo exons
   bool allowExonSkipping, allowIntronRetention, allowCrypticSites;
   bool allowDeNovoSites, allowCrypticExons, allowRegulatoryChanges;
   Model();

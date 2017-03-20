@@ -157,9 +157,17 @@ void ACEplus::processConfig(const String &filename)
   model.allowRegulatoryChanges=config.getBoolOrDie("allow-regulatory-changes");
   model.MIN_SCORE=config.getFloatOrDie("min-path-score");
   model.MAX_ALT_STRUCTURES=config.getIntOrDie("max-alt-structures");
-
-  //cout<<"SETTING MIN_SCORE to 0.0!!!"<<endl;
-  //model.MIN_SCORE=0.0;
+  if(config.isDefined("coef-denovo-exon"))
+    model.coefDenovoExon=config.getFloatOrDie("coef-denovo-exon");
+  if(config.isDefined("max-intron-retention-length"))
+    model.maxIntronRetentionLen=
+      config.getIntOrDie("max-intron-retention-length");
+  if(config.isDefined("min-intron-retention-LLR"))
+    model.minDeNovoExonLLR=config.getFloatOrDie("min-intron-retention-LLR");
+  if(config.isDefined("max-denovo-exon-length"))
+    model.maxDeNovoExonLen=config.getIntOrDie("max-denovo-exon-length");
+  if(config.isDefined("min-denovo-exon-LLR"))
+    model.minDeNovoExonLLR=config.getFloatOrDie("min-denovo-exon-LLR");
 
   // Use LLR for splice site signal sensors
   ContentSensor *bg=loadContentSensor("splice-background-model",config);

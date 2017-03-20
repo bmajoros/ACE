@@ -22,7 +22,7 @@ struct StructureChange {
   bool intronRetention;
   bool crypticSite;
   bool deNovoSite; // a cryptic site created by an alternate allele
-  bool crypticExon; // a new exon created by a de novo splice site
+  bool crypticExon; // a new exon created by an alternate allele
   bool regulatoryChange; // any change brought about by altering splicing
                          // regulatory elements
   StructureChange();

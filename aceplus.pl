@@ -38,6 +38,7 @@ my $DEBUG=0; # THIS ALSO TERMINATES THE SCRIPT AFTER THE FIRST GENE
 my $MAX_TRANSCRIPTS=-1;
 my $STOP_AFTER; #="ENST00000250572.8";
 my $ACE=$ENV{"ACEPLUS"};
+if(length($ACE)<1) { system("env"); die "environment variable ACEPLUS is not set" }
 my $refFastaTemp=TempFilename::generate();
 my $altFastaTemp=TempFilename::generate();
 #my $labelingTemp=TempFilename::generate();

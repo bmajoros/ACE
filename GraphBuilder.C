@@ -124,7 +124,21 @@ double GraphBuilder::scoreSignal(SignalType type,int pos,const Sequence &seq,
 
 
 
-double GraphBuilder::scoreEdge(LightEdge *edge)
+void GraphBuilder::inspectEdgeScore(ACEplus_Edge *edge,const String &label)
+{
+  //if(edge->getLength()<0) throw String("negative ")+edge->getLength()+"="+edge->getBegin()+"-"+edge->getEnd();
+  const String id=projected.getGeneId();
+  const PrefixSumArray &psa=model.contentSensors->getPSA(edge->getType());
+  cout<<"EDGE\t"<<label<<"\t"<<id<<"\tL="<<edge->getLength()<<"\tLLR="
+      <<psa.getInterval(edge->getBegin(),edge->getEnd())<<"\t";
+  //for(int i=edge->getBegin() ; i<edge->getEnd() ; ++i) 
+  //  cout<<psa.getInterval(i,i+1)<<"\t";
+  cout<<endl;
+}
+
+
+
+double GraphBuilder::scoreEdge(ACEplus_Edge *edge)
 {
   // Get emission probability
   if(edge->getLength()<1) {
@@ -133,13 +147,15 @@ double GraphBuilder::scoreEdge(LightEdge *edge)
   }
   double score=model.contentSensors->score(edge->getType(),edge->getBegin(),
 					  edge->getEnd());
-  //if(score>0) cout<<" POSITIVE: "<<edge->getType()<<" "<<edge->getBegin()<<" "<<edge->getEnd()<<endl;
   if(!isFinite(score)) {
     cerr<<*edge<<endl;
     cerr<<"edge emission score = "<<score<<" begin="<<edge->getBegin()<<
       " end="<<edge->getEnd()<<" type="<<edge->getType()<<endl;
-    INTERNAL_ERROR;
-  }
+    INTERNAL_ERROR; }
+  const StructureChange change=edge->getChange();
+  /*if(change.intronRetention || change.crypticExon)
+    inspectEdgeScore(edge,change.intronRetention ? "intron-retention" :
+    "denovo-exon");*/
 
   // Get duration probability
   const int L=edge->getLength();
@@ -175,6 +191,12 @@ double GraphBuilder::scoreEdge(LightEdge *edge)
     cout<<*edge<<endl;
     cerr<<"Zero edges out!"<<endl;
     INTERNAL_ERROR; }
+
+  // Apply hard filter to reduce false positives
+  if(change.intronRetention && score<model.minIntronRetentionLLR)
+    score=NEGATIVE_INFINITY;
+  else if(change.crypticExon && score<model.minDeNovoExonLLR)
+    score=NEGATIVE_INFINITY;
 
   // Store score in edge
   edge->setScore(score);
@@ -519,6 +541,7 @@ void GraphBuilder::handleRetentionLeft(LightVertex *v)
 #ifdef SANITY_CHECKS
     if(from->getType()==to->getType()) INTERNAL_ERROR;
 #endif
+    if(end-begin>model.maxIntronRetentionLen) continue;
     ACEplus_Edge *new_Edge=
       newEdge(substrate,EXON,from,to,begin,end,strand,G->getNumEdges());
     if(!new_Edge) continue;
@@ -550,6 +573,7 @@ void GraphBuilder::handleRetentionRight(LightVertex *v)
 #ifdef SANITY_CHECKS
     if(from->getType()==to->getType()) INTERNAL_ERROR;
 #endif
+    if(end-begin>model.maxIntronRetentionLen) continue;
     ACEplus_Edge *new_Edge=
       newEdge(substrate,EXON,from,to,begin,end,strand,G->getNumEdges());
     if(!new_Edge) continue;
@@ -1070,6 +1094,8 @@ void GraphBuilder::scanCrypticExonLeft(int of)
   SignalSensor *sensor=model.signalSensors->findSensor(AG);
 
   Vector<ACEplus_Vertex*> newVertices;
+  if(ofBegin-leftEnd>model.maxDeNovoExonLen)
+    leftEnd=ofBegin-model.maxDeNovoExonLen;
   findMateSignals(*sensor,Interval(leftEnd,ofBegin),newVertices);
   
   // Link the new vertices into the graph
@@ -1119,6 +1145,8 @@ void GraphBuilder::scanCrypticExonRight(int of)
   SignalSensor *sensor=model.signalSensors->findSensor(GT);
 
   Vector<ACEplus_Vertex*> newVertices;
+  if(rightBegin-ofEnd>model.maxDeNovoExonLen)
+    rightBegin=ofEnd+model.maxDeNovoExonLen;
   findMateSignals(*sensor,Interval(ofEnd,rightBegin),newVertices);
   
   // Link the new vertices into the graph
@@ -1666,8 +1694,8 @@ void GraphBuilder::proposeCrypticExons(const Interval &variant,
 				       const ExonEdge &nextExon)
 {
   // Scan for splice sites on either side of the variant
-  int scanBegin=variant.getBegin()-model.MAX_CRYPTIC_EXON_LEN;
-  int scanEnd=variant.getEnd()+model.MAX_CRYPTIC_EXON_LEN;
+  int scanBegin=variant.getBegin()-model.maxDeNovoExonLen;
+  int scanEnd=variant.getEnd()+model.maxDeNovoExonLen;
   Vector<ACEplus_Vertex*> acceptors, donors;
   scan(Interval(scanBegin,variant.getBegin()),AG,acceptors);
   scan(Interval(variant.getEnd(),scanEnd),GT,donors);
@@ -1681,7 +1709,7 @@ void GraphBuilder::proposeCrypticExons(const Interval &variant,
     for(Vector<ACEplus_Vertex*>::iterator cur=donors.begin(), 
 	  end=donors.end() ; cur!=end ; ++cur) {
       LightVertex *donor=*cur;
-      if(donor->getBegin()-acceptor->getEnd()>model.MAX_CRYPTIC_EXON_LEN)
+      if(donor->getBegin()-acceptor->getEnd()>model.maxDeNovoExonLen)
 	continue;
 
       // Apply a filter on the exon definition score for this interval
@@ -1759,7 +1787,7 @@ bool GraphBuilder::buildGraph(bool strict)
   cout<<numEdges<<" edges"<<endl;
   for(int i=0 ; i<numEdges ; ++i) {
     LightEdge *edge=G->getEdge(i);
-    scoreEdge(edge);
+    scoreEdge(dynamic_cast<ACEplus_Edge*>(edge));
     if(!isFinite(edge->getScore())) G->dropEdge(i);
   }
   cout<<"deleting null edges"<<endl;
