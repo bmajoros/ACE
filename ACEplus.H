@@ -19,6 +19,7 @@ public:
   ACEplus();
   virtual ~ACEplus() {}
   virtual int main(int argc,char *argv[]);
+  int analyzeExonDefinition(int argc,char *argv[]);
 protected:
   ContentSensors contentSensors;
   Model model;

@@ -142,7 +142,6 @@ void ACEplus::processConfig(const String &filename)
   model.MIN_EXON_LEN=MIN_EXON_LEN;
   model.MIN_INTRON_LEN=MIN_INTRON_LEN;
   model.NMD_DISTANCE_PARM=NMD_DISTANCE_PARM;
-  model.MAX_CRYPTIC_EXON_LEN=config.getIntOrDie("max-cryptic-exon-length");
   model.EXON_STRENGTHENING_THRESHOLD=
     config.getFloatOrDie("exon-strengthening-threshold");
   model.EXON_WEAKENING_THRESHOLD=
@@ -499,5 +498,59 @@ void ACEplus::refineStartCodon(int start,GffTranscript &transcript,
     transcript.splitUTRandCDS(altSeqStr,newStart,sensors.stopCodons);
 }
 
+
+
+int ACEplus::analyzeExonDefinition(int argc,char *argv[])
+{
+  // Process command line
+  CommandLine cmd(argc,argv,"e:");
+  if(cmd.option('v')) { cout<<"version "<<VERSION<<endl; exit(0); }
+  if(cmd.numArgs()!=3)
+    throw String("\n\
+analyze-exon-def <ace.config> <ref.gff> <ref.fasta>\n\
+     -e N = abort if vcf errors >N\n\
+\n");
+  configFile=cmd.arg(0);
+  refGffFile=cmd.arg(1);
+  refFasta=cmd.arg(2);
+
+  // Read some data from files
+  processConfig(configFile);
+  refSeqStr=loadSeq(refFasta);
+  refSeq.copyFrom(refSeqStr,alphabet);
+  refSeqLen=refSeqStr.length();
+  refTrans=loadGff(refGffFile);
+  refTrans->loadSequence(refSeqStr);
+
+  // Build prefix-sum arrays for fast scoring
+  buildPSAs(contentSensors,refSeqLen,refSeq,refSeqStr);
+
+  // Check that the reference gene is well-formed
+  status=new Essex::CompositeNode("status");
+  bool referenceIsOK=checkRefGene();
+  if(!referenceIsOK) return;
+
+  // Analyze score intervals
+  const int numExons=refTrans->numExons();
+  for(int i=1 ; i+1<numExons ; ++i) {
+    const GffExon &exon=refTrans->getIthExon(i);
+    const int begin=exon.getBegin(), end=exon.getEnd();
+    PrefixSumArray &psa=model.contentSensors->getPSA(EXON);
+    Vector<float> scores;
+    for(int pos=begin ; pos<end ; ++pos)
+      scores.append(psa.getInterval(pos,pos+1));
+    const int L=scores.size();
+    int start=-1;
+    for(int pos=0 ; pos<L ; ++pos) {
+      if(scores[pos]<0)
+	{ if(pos==0 || scores[pos-1]>=0) start=pos; }
+      else
+	if(pos>0 && scores[pos-1]>=0) {
+	  int len=pos-start;
+	  cout<<len<<endl;
+	}
+    }
+  }
+}
 
 

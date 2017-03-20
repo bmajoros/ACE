@@ -27,7 +27,6 @@ struct Model {
   int maxDeNovoExonLen;
   float minDeNovoExonLLR;
   int MAX_SPLICE_SHIFT, MIN_EXON_LEN, MIN_INTRON_LEN, NMD_DISTANCE_PARM;
-  int MAX_CRYPTIC_EXON_LEN; // maximum length of a cryptic exon
   float EXON_STRENGTHENING_THRESHOLD; // min ratio of alt/ref for intronic
                                       // sequence to (possibly) become exonic
   float EXON_WEAKENING_THRESHOLD; // below this alt/ref ratio, exonic sequence
