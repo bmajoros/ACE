@@ -330,24 +330,21 @@ void ACEplus::checkProjection(const String &outGff,bool &mapped,
   // Extract paths
   cout<<"extracting paths"<<endl;
   TranscriptPaths paths(*G,model.MAX_ALT_STRUCTURES,altSeq.getLength());
+  cout<<paths.numPaths()<<" paths"<<endl;
 
   // Compute posteriors
   cout<<"scoring paths"<<endl;
-  paths.computePosteriors();
-  /*const double refLik=getRefLikelihood(refLab,altTrans);
-  if(!isFinite(refLik)) {
-    status->prepend("bad-annotation");
+  /*  if(paths.numPaths()==0) {
+    status->prepend("no-transcript");
     delete altTrans;
     delete G;
     delete signals;
-    return;
-  }
-  paths.computeLRs(refLik);
-  */
+    return; }*/
+  paths.computePosteriors();
   paths.filter(model.MIN_SCORE);
 
   // Handle cases
-  cout<<"handling cases"<<endl;
+  cout<<"handling cases: "<<paths.numPaths()<<" paths"<<endl;
   //if(graphBuilder.mapped() && paths.numPaths()==1) {
   if(paths.numPaths()==1 && paths[0]->isFullyAnnotated()) {
     if(signals->anyWeakened()) appendBrokenSignals(signals);
@@ -505,14 +502,15 @@ int ACEplus::analyzeExonDefinition(int argc,char *argv[])
   // Process command line
   CommandLine cmd(argc,argv,"e:");
   if(cmd.option('v')) { cout<<"version "<<VERSION<<endl; exit(0); }
-  if(cmd.numArgs()!=3)
+  if(cmd.numArgs()!=4)
     throw String("\n\
-analyze-exon-def <ace.config> <ref.gff> <ref.fasta>\n\
+analyze-exon-def <ace.config> <ref.gff> <ref.fasta> <LLR-threshold>\n\
      -e N = abort if vcf errors >N\n\
 \n");
   configFile=cmd.arg(0);
   refGffFile=cmd.arg(1);
   refFasta=cmd.arg(2);
+  const float threshold=cmd.arg(3).asFloat();
 
   // Read some data from files
   processConfig(configFile);
@@ -530,27 +528,61 @@ analyze-exon-def <ace.config> <ref.gff> <ref.fasta>\n\
   bool referenceIsOK=checkRefGene();
   if(!referenceIsOK) return;
 
+  // Analyze exon definition scores
+  PrefixSumArray &psa=model.contentSensors->getPSA(EXON);
+  if(true) {
+    const int numExons=refTrans->numExons();
+    for(int i=1 ; i+1<numExons ; ++i) {
+      const GffExon &exon=refTrans->getIthExon(i);
+      float score=psa.getInterval(exon.getBegin(),exon.getEnd());
+      score/=exon.length();
+      cout<<score<<"\t1"<<endl; }
+    Vector<Interval> introns;
+    refTrans->getIntrons(introns);
+    for(Vector<Interval>::const_iterator cur=introns.begin(), 
+	  end=introns.end() ; cur!=end ; ++cur) {
+      const Interval intron=*cur;
+      float score=psa.getInterval(intron.getBegin(),intron.getEnd());
+      score/=intron.length();
+      cout<<score<<"\t0"<<endl; }
+  }
+
   // Analyze score intervals
-  const int numExons=refTrans->numExons();
-  for(int i=1 ; i+1<numExons ; ++i) {
-    const GffExon &exon=refTrans->getIthExon(i);
-    const int begin=exon.getBegin(), end=exon.getEnd();
-    PrefixSumArray &psa=model.contentSensors->getPSA(EXON);
-    Vector<float> scores;
-    for(int pos=begin ; pos<end ; ++pos)
-      scores.append(psa.getInterval(pos,pos+1));
-    const int L=scores.size();
-    int start=-1;
-    for(int pos=0 ; pos<L ; ++pos) {
-      if(scores[pos]<0)
-	{ if(pos==0 || scores[pos-1]>=0) start=pos; }
-      else
-	if(pos>0 && scores[pos-1]>=0) {
-	  int len=pos-start;
-	  cout<<len<<endl;
-	}
-    }
+  if(false) {
+    const int numExons=refTrans->numExons();
+    for(int i=1 ; i+1<numExons ; ++i) {
+      const GffExon &exon=refTrans->getIthExon(i);
+      Vector<Interval> intervals;
+      exonDefIntervalsBelow(exon.getInterval(),threshold,intervals);
+      cout<<Interval::longest(intervals)<<"\t0"<<endl; }
+    Vector<Interval> introns;
+    refTrans->getIntrons(introns);
+    for(Vector<Interval>::const_iterator cur=introns.begin(), 
+	  end=introns.end() ; cur!=end ; ++cur) {
+      Vector<Interval> intervals;
+      exonDefIntervalsBelow(*cur,threshold,intervals);
+      cout<<Interval::longest(intervals)<<"\t1"<<endl; }
   }
 }
 
 
+
+void ACEplus::exonDefIntervalsBelow(const Interval &exon,float threshold,
+				    Vector<Interval> &into)
+{
+  const int begin=exon.getBegin(), end=exon.getEnd();
+  PrefixSumArray &psa=model.contentSensors->getPSA(EXON);
+  Vector<float> scores;
+  for(int pos=begin ; pos<end ; ++pos)
+    scores.push_back(psa.getInterval(pos,pos+1));
+  const int L=scores.size();
+  int start=-1;
+  for(int pos=0 ; pos<L ; ++pos) {
+    if(scores[pos]<threshold)
+      { if(pos==0 || scores[pos-1]>=threshold) start=pos; }
+    else
+      if(pos>0 && scores[pos-1]>=threshold)
+	into.push_back(Interval(start,pos));
+  }
+  if(start>=0 && scores[L-1]<threshold) into.push_back(Interval(start,L));
+}

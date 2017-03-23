@@ -59,58 +59,6 @@ void TranscriptPaths::buildPaths(int N)
 
 
 
-/*
-void TranscriptPaths::buildPaths_OLD()
-{
-  const int numVertices=G.getNumVertices();
-  if(numVertices<2) return;
-
-  // Initialize recursion stack
-  cout<<"init stack"<<endl;
-  Stack<TranscriptPath*> S;
-  LightVertex *leftTerminus=G.getVertex(0);
-  LightVertex *rightTerminus=G.getVertex(numVertices-1);
-  Vector<LightEdge*> &out=leftTerminus->getEdgesOut();
-  for(Vector<LightEdge*>::iterator cur=out.begin(), end=out.end() ;
-      cur!=end ; ++cur) {
-    LightEdge *edge=*cur;
-    TranscriptPath *path=new TranscriptPath();
-    path->addEdge(dynamic_cast<ACEplus_Edge*>(edge));
-    S.push(path);
-  }
-
-  // Perform depth-first search using stack
-  cout<<"DFS "<<S.size()<<" "<<G.getNumVertices()<<" "<<G.getNumEdges()<<endl;
-  while(!S.isEmpty()) {
-    //cout<<"S.size="<<S.size()<<endl;
-    TranscriptPath *path=S.pop();
-    //cout<<path<<" has "<<path->numEdges()<<" edges"<<endl;
-    LightVertex *v=path->lastVertex();
-    if(v==rightTerminus) { 
-      //cout<<paths.size()<<" paths"<<endl;
-      paths.push_back(path); 
-      continue; }
-    Vector<LightEdge*> &out=v->getEdgesOut();
-    for(Vector<LightEdge*>::iterator cur=out.begin(), end=out.end() ;
-	cur!=end ; ++cur) {
-      LightEdge *edge=*cur;
-      TranscriptPath *newPath=path->clone();
-      newPath->addEdge(dynamic_cast<ACEplus_Edge*>(edge));
-      S.push(newPath);
-    }
-    delete path;
-  }
-
-  // Score the paths
-  cout<<"scoring paths "<<paths.size()<<endl;
-  for(Vector<TranscriptPath*>::iterator cur=paths.begin(), end=paths.end() ;
-      cur!=end ; ++cur) 
-    (*cur)->computeScore();
-}
-*/
-
-
-
 void TranscriptPaths::computeLRs(double denom)
 {
   const double L=double(seqLen);
@@ -118,14 +66,7 @@ void TranscriptPaths::computeLRs(double denom)
   for(int i=0 ; i<numPaths ; ++i) {
     TranscriptPath *path=paths[i];
     path->computeScore();
-    //cout<<"path->getScore()="<<path->getScore()<<endl;
     const double llr=path->getScore()/L-denom;
-    /*
-    const double lr=exp(llr);
-    if(lr>100000)
-      cout<<"setting score "<<lr<<" = "<<path->getScore()<<" - "<<denom<<endl;
-    */
-    //path->setScore(llr/log(2.0)); // convert to log base 2
     path->setScore(exp(llr));
   }
 }
@@ -144,7 +85,7 @@ void TranscriptPaths::computePosteriors()
   }
   
   // Marginalize out the paths to get log(P(seq))
-  double logSum=sumLogProbs(logProbs);
+  double logSum=logProbs.empty() ? 0.0 : sumLogProbs(logProbs);
   if(!isFinite(logSum)) {
     cerr<<"logSum="<<logSum<<endl;
     for(int i=0 ; i<numPaths ; ++i) cerr<<" score="<<paths[i]->getScore();

@@ -6,6 +6,7 @@
  ****************************************************************/
 #ifndef INCL_ACEplus_H
 #define INCL_ACEplus_H
+#include "BOOM/Interval.H"
 #include "ACE.H"
 #include "ContentSensors.H"
 #include "Model.H"
@@ -53,6 +54,8 @@ protected:
 				   const Labeling &projectedLab);
   void refineStartCodon(int start,GffTranscript &,Essex::CompositeNode *&msg);
   double getRefLikelihood(const Labeling &refLab,GffTranscript *altTrans);
+  void exonDefIntervalsBelow(const Interval &exon,float below,
+			     Vector<Interval> &into);
 };
 
 #endif

@@ -13,7 +13,7 @@ my $slurm=$ENV{"SLURM_JOB_ID"};
 
 my $name=ProgramName::get();
 die "
-$name [options] <config-file> <reference.multi-fasta> <local.gff> <max-VCF-errors>
+$name [options] <config-file> <reference.multi-fasta> <local.gff> <max-VCF-errors> <LLR-threshold>
   * local.gff must be a GTF/GFF2 file, not GFF3; all elements must
     have transcript_id and gene_id elements.  You can use the local.gff
     file produced by make-individual-genomes.pl
@@ -24,8 +24,8 @@ $name [options] <config-file> <reference.multi-fasta> <local.gff> <max-VCF-error
 
 Please refer to http://geneprediction.org/ACE for detailed instructions.
 
-" unless @ARGV==4;
-my ($modelDir,$refFasta,$refGFF,$MAX_VCF_ERRORS)=@ARGV;
+" unless @ARGV==5;
+my ($modelDir,$refFasta,$refGFF,$MAX_VCF_ERRORS,$threshold)=@ARGV;
 my $commandline = join " ", $0, @ARGV;
 
 my $QUIET=$opt_q ? "-q" : "";
@@ -71,7 +71,7 @@ while(1) {
       my $substrateLength=length($$refSeqRef);
       System("revcomp-gff.pl $oneGeneGFF $substrateLength > $tempRevcomp ; mv $tempRevcomp $oneGeneGFF"); }
     my $errorsFlag=$MAX_VCF_ERRORS>=0 ? "-e $MAX_VCF_ERRORS" : "";
-    my $command="$ACE/analyze-exon-def $errorsFlag $modelFile $oneGeneGFF $refFastaTemp";
+    my $command="$ACE/analyze-exon-def $errorsFlag $modelFile $oneGeneGFF $refFastaTemp $threshold";
     system($command);
     if($DEBUG || $STOP_AFTER eq $transID) {
       print "$command\n";
