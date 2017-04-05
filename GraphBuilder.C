@@ -1284,7 +1284,6 @@ void GraphBuilder::handleExonWeakening(const Vector<Interval> &variants,
 {
   // For each variant in an exon, evaluate change in exon definition within
   // a small window around the variant (left-5 to right+5)
-
   Vector< pair<Interval,ExonEdge> > variantsInExons;
   getVariantsInExons(variants,exons,variantsInExons);
   for(Vector< pair<Interval,ExonEdge> >::const_iterator 
@@ -1314,7 +1313,7 @@ void GraphBuilder::getAllVertices(int from,int to,SignalType type,
 {
   for(int i=from ; i<=to ; ++i) {
     LightVertex *v=G->getVertex(i);
-    if(v->getType()==type) into.push_back(v);
+    if(v->getType()==type) into.push_back(v->getID());
   }
 }
 				      
@@ -1567,7 +1566,7 @@ void GraphBuilder::shortenExon(const Interval &variant,const ExonEdge &exon)
 {
   const int distToRightEnd=exon.interval.getEnd()-variant.getBegin();
   const int distToLeftEnd=variant.getEnd()-exon.interval.getBegin();
-  if(distToRightEnd<distToLeftEnd)
+  if(distToRightEnd<=distToLeftEnd)
     shortenExonFromTheRight(variant,exon);
   else 
     shortenExonFromTheLeft(variant,exon);
@@ -1598,6 +1597,7 @@ void GraphBuilder::shortenExonFromTheRight(const Interval &variant,
 #ifdef SANITY_CHECKS
       if(newVertex->getType()==linkTo->getType()) INTERNAL_ERROR;
 #endif
+      if(newVertex->getEnd()>=linkTo->getBegin()) continue;
       ACEplus_Edge *edge=linkVertices(newVertex,linkTo);
       if(edge) edge->getChange().regulatoryChange=true;}
 
@@ -1608,6 +1608,7 @@ void GraphBuilder::shortenExonFromTheRight(const Interval &variant,
 #ifdef SANITY_CHECKS
       if(linkTo->getType()==newVertex->getType()) INTERNAL_ERROR;
 #endif
+      if(linkTo->getEnd()>=newVertex->getBegin()) continue;
       ACEplus_Edge *edge=linkVertices(linkTo,newVertex);
       if(edge) edge->getChange().regulatoryChange=true;}
   }
@@ -1638,6 +1639,7 @@ void GraphBuilder::shortenExonFromTheLeft(const Interval &variant,
 #ifdef SANITY_CHECKS
       if(newVertex->getType()==linkTo->getType()) INTERNAL_ERROR;
 #endif
+      if(newVertex->getEnd()>=linkTo->getBegin()) continue;
       ACEplus_Edge *edge=linkVertices(newVertex,linkTo);
       if(edge) edge->getChange().regulatoryChange=true;}
 
@@ -1648,6 +1650,7 @@ void GraphBuilder::shortenExonFromTheLeft(const Interval &variant,
 #ifdef SANITY_CHECKS
       if(linkTo->getType()==newVertex->getType()) INTERNAL_ERROR;
 #endif
+      if(linkTo->getEnd()>=newVertex->getBegin()) continue;
       ACEplus_Edge *edge=linkVertices(linkTo,newVertex);
       if(edge) edge->getChange().regulatoryChange=true;}
   }

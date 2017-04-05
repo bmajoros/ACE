@@ -3572,6 +3572,8 @@ aceplus: \
 #---------------------------------------------------------
 #---------------------------------------------------------
 aceplus-test: \
+		$(OBJ)/TrellisLink.o \
+		$(OBJ)/NBest.o \
 		$(OBJ)/ACEplus_Vertex.o \
 		$(OBJ)/ACEplus_Edge.o \
 		$(OBJ)/TranscriptPath.o \
@@ -3646,6 +3648,8 @@ aceplus-test: \
 		$(OBJ)/ProjectionChecker.o \
 		$(OBJ)/aceplus.o
 	$(CC) $(LDFLAGS) -o aceplus-test \
+		$(OBJ)/TrellisLink.o \
+		$(OBJ)/NBest.o \
 		$(OBJ)/ACEplus_Vertex.o \
 		$(OBJ)/ACEplus_Edge.o \
 		$(OBJ)/TranscriptPath.o \

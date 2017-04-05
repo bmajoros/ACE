@@ -5,6 +5,8 @@ use EssexACE;
 use ProgramName;
 $|=1;
 
+my $WANT_NEW_STARTS=0;
+
 my $name=ProgramName::get();
 die "$name <in.essex> <out.gff> <allele#>\n" unless @ARGV==3;
 my ($infile,$outfile,$hap)=@ARGV;
@@ -20,8 +22,6 @@ while(1) {
   next if $seen{$transcriptID};
   $seen{$transcriptID}=1;
   my $status=$ace->getStatusString();
-  #if($status->hasDescendentOrDatum("bad-annotation")) { next }
-  #if($status eq "mapped") {
   my $transcript=$ace->getMappedTranscript();
   if($transcript) {
     my $id=$transcript->getTranscriptId();
@@ -47,7 +47,7 @@ while(1) {
       print OUT $transcript->toGff();
     }
   }
-  elsif($status eq "mapped") {
+  elsif($WANT_NEW_STARTS && $status eq "mapped") {
     my $transcriptNode=
       $root->pathQuery("report/status/new-upstream-start-codon/transcript");
     if($transcriptNode) {
