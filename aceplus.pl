@@ -37,6 +37,7 @@ my $QUIET=$opt_q ? "-q" : "";
 my $DEBUG=0; # THIS ALSO TERMINATES THE SCRIPT AFTER THE FIRST GENE
 my $MAX_TRANSCRIPTS=-1;
 my $STOP_AFTER; #="ENST00000250572.8";
+my $START_AT="ENSG00000231982.1";
 my $ACE=$ENV{"ACEPLUS"};
 if(length($ACE)<1) { system("env"); die "environment variable ACEPLUS is not set" }
 my $refFastaTemp=TempFilename::generate();
@@ -65,6 +66,10 @@ while(1) {
   $altDef=~/^\s*>\s*(\S+)_(\d)/ 
     || die "Can't parse ID from alt defline: $altDef";
   my ($altID,$hap)=($1,$2);
+  if($START_AT ne "") {
+    if($altID eq $START_AT) { $START_AT="" }
+    else { next }
+  }
   print "$altID\_$hap\n";
   my $modelFile=getModelFile($altSeqRef,$modelDir);
   my $transcripts=$byGene->{$altID};

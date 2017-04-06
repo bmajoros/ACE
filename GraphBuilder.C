@@ -305,6 +305,7 @@ bool GraphBuilder::buildTranscriptGraph()
       //INTERNAL_ERROR;
     }
     edge->setBroken(false);
+    edge->setAnnotated(true);
     prev->addEdgeOut(edge); next->addEdgeIn(edge);
     G->addEdge(edge);
   }  
@@ -323,25 +324,28 @@ void GraphBuilder::handleBrokenSites()
   }
 
   // Delete broken sites
+  Set<LightVertex*> verticesToDelete;
+  Set<LightEdge*> edgesToDelete;
   for(int i=0 ; i<numVertices ; ++i) {
     LightVertex *v=G->getVertex(i);
     if(!v->isBroken()) continue;
+    verticesToDelete+=v;
     Vector<LightEdge*> &in=v->getEdgesIn(), &out=v->getEdgesOut();
     for(Vector<LightEdge*>::iterator cur=in.begin(), end=in.end() ; 
-	cur!=end ; ++cur) {
-      LightEdge *e=*cur;
-      e->getLeft()->dropEdgeOut(e); e->getRight()->dropEdgeIn(e);
-      G->dropEdge(e->getID());
-      delete *cur; }
+	cur!=end ; ++cur) edgesToDelete+=*cur;
     for(Vector<LightEdge*>::iterator cur=out.begin(), end=out.end() ; 
-	cur!=end ; ++cur) { 
-      LightEdge *e=*cur;
-      e->getLeft()->dropEdgeOut(e); e->getRight()->dropEdgeIn(e);
-      G->dropEdge(e->getID());
-      delete *cur; }
+	cur!=end ; ++cur) edgesToDelete+=*cur;
     G->dropVertex(i);
-    delete v;
-  }  
+  }
+  for(Set<LightEdge*>::iterator cur=edgesToDelete.begin(), end=
+	edgesToDelete.end() ; cur!=end ; ++cur) {
+    LightEdge *e=*cur;
+    e->getLeft()->dropEdgeOut(e); e->getRight()->dropEdgeIn(e);
+    G->dropEdge(e->getID());
+    delete e;
+  }
+  for(Set<LightVertex*>::iterator cur=verticesToDelete.begin(), end=
+	verticesToDelete.end() ; cur!=end ; ++cur) delete *cur;
   G->deleteNullVertices(); G->deleteNullEdges();
 }
 
@@ -434,12 +438,25 @@ void GraphBuilder::handleBrokenSite_cryptic(LightVertex *v)
 
 
 
+LightEdge *GraphBuilder::getAnnotatedEdge(Vector<LightEdge*> &edges)
+{
+  for(Vector<LightEdge*>::iterator cur=edges.begin(), end=edges.end() ;
+      cur!=end ; ++cur) {
+    LightEdge *edge=*cur;
+    if(edge->isAnnotated()) return edge; }
+  INTERNAL_ERROR;
+}
+
+
+
 void GraphBuilder::handleBrokenSite_skipping(LightVertex *v)
 {
   Vector<LightEdge*> &in=v->getEdgesIn(), &out=v->getEdgesOut();
   if(in.size()==0 || out.size()==0) return;
-  if(in[0]->getType()==EXON) { handleSkippingLeft(v); return; }
-  if(out[0]->getType()==EXON) { handleSkippingRight(v); return; }
+  //if(in[0]->getType()==EXON) { handleSkippingLeft(v); return; }
+  //if(out[0]->getType()==EXON) { handleSkippingRight(v); return; }
+  if(getAnnotatedEdge(in)->getType()==EXON) handleSkippingLeft(v);
+  else if(getAnnotatedEdge(out)->getType()==EXON) handleSkippingRight(v);
 }
 
 
@@ -447,10 +464,11 @@ void GraphBuilder::handleBrokenSite_skipping(LightVertex *v)
 void GraphBuilder::handleSkippingLeft(LightVertex *v)
 {
   Vector<LightEdge*> &in=v->getEdgesIn(), &out=v->getEdgesOut();
+  //LightEdge *leftEdge=in[0], *rightEdge=out[0];
+  LightEdge *leftEdge=getAnnotatedEdge(in), *rightEdge=getAnnotatedEdge(out);
 #ifdef SANITY_CHECKS
-  if(in.size()!=1 || out.size()!=1) INTERNAL_ERROR;
+  if(!leftEdge || !rightEdge) INTERNAL_ERROR;
 #endif
-  LightEdge *leftEdge=in[0], *rightEdge=out[0];
   const String &substrate=leftEdge->getSubstrate();
   Strand strand=leftEdge->getStrand();
   if(rightEdge->getType()!=INTRON) return;
@@ -481,10 +499,10 @@ void GraphBuilder::handleSkippingLeft(LightVertex *v)
 void GraphBuilder::handleSkippingRight(LightVertex *v)
 {
   Vector<LightEdge*> &in=v->getEdgesIn(), &out=v->getEdgesOut();
+  LightEdge *leftEdge=getAnnotatedEdge(in), *rightEdge=getAnnotatedEdge(out);
 #ifdef SANITY_CHECKS
-  if(in.size()!=1 || out.size()!=1) INTERNAL_ERROR;
+  if(!leftEdge || !rightEdge) INTERNAL_ERROR;
 #endif
-  LightEdge *leftEdge=in[0], *rightEdge=out[0];
   const String &substrate=leftEdge->getSubstrate();
   Strand strand=leftEdge->getStrand();
   if(leftEdge->getType()!=INTRON) return;
@@ -516,8 +534,8 @@ void GraphBuilder::handleBrokenSite_retention(LightVertex *v)
 {
   Vector<LightEdge*> &in=v->getEdgesIn(), &out=v->getEdgesOut();
   if(in.size()==0 || out.size()==0) return;
-  if(in[0]->getType()==INTRON) { handleRetentionLeft(v); return; }
-  if(out[0]->getType()==INTRON) { handleRetentionRight(v); return; }
+  if(getAnnotatedEdge(in)->getType()==INTRON) handleRetentionLeft(v);
+  else if(getAnnotatedEdge(out)->getType()==INTRON) handleRetentionRight(v);
 }
 
 
@@ -525,10 +543,10 @@ void GraphBuilder::handleBrokenSite_retention(LightVertex *v)
 void GraphBuilder::handleRetentionLeft(LightVertex *v)
 {
   Vector<LightEdge*> &in=v->getEdgesIn(), &out=v->getEdgesOut();
+  LightEdge *leftEdge=getAnnotatedEdge(in), *rightEdge=getAnnotatedEdge(out);
 #ifdef SANITY_CHECKS
-  if(in.size()!=1 || out.size()!=1) INTERNAL_ERROR;
+  if(!leftEdge || !rightEdge) INTERNAL_ERROR;
 #endif
-  LightEdge *leftEdge=in[0], *rightEdge=out[0];
   const String &substrate=leftEdge->getSubstrate();
   Strand strand=leftEdge->getStrand();
   LightVertex *to=rightEdge->getRight();
@@ -557,10 +575,10 @@ void GraphBuilder::handleRetentionLeft(LightVertex *v)
 void GraphBuilder::handleRetentionRight(LightVertex *v)
 {
   Vector<LightEdge*> &in=v->getEdgesIn(), &out=v->getEdgesOut();
+  LightEdge *leftEdge=getAnnotatedEdge(in), *rightEdge=getAnnotatedEdge(out);
 #ifdef SANITY_CHECKS
-  if(in.size()!=1 || out.size()!=1) INTERNAL_ERROR;
+  if(!leftEdge || !rightEdge) INTERNAL_ERROR;
 #endif
-  LightEdge *leftEdge=in[0], *rightEdge=out[0];
   const String &substrate=leftEdge->getSubstrate();
   Strand strand=leftEdge->getStrand();
   LightVertex *from=leftEdge->getLeft();

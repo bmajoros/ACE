@@ -134,6 +134,7 @@ protected:
 			   const ExonEdge &prevExon,
 			   const ExonEdge &nextExon);
   void inspectEdgeScore(ACEplus_Edge *,const String &label);
+  LightEdge *getAnnotatedEdge(Vector<LightEdge*> &);
 };
 
 #endif

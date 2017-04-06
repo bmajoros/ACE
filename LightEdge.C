@@ -15,7 +15,7 @@ using namespace BOOM;
 LightEdge::LightEdge(const String &substrate,ContentType t,LightVertex *l,
 		     LightVertex *r,int begin,int end,Strand s,int ID)
   : type(t), left(l), right(r), begin(begin), end(end), strand(s),
-    substrate(substrate), ID(ID), supported(false)
+    substrate(substrate), ID(ID), supported(false), annotated(false)
 {
   score[0]=score[1]=score[2]=NEGATIVE_INFINITY;
 }

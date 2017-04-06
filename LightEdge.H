@@ -49,6 +49,8 @@ public:
   int getID() const { return ID; }
   void setID(int id) { ID=id; }
   bool operator==(const LightEdge &) const;
+  virtual void setAnnotated(bool a) { annotated=a; }
+  virtual bool isAnnotated() { return annotated; }
 protected:
   LightVertex *left, *right;
   ContentType type;
@@ -58,6 +60,7 @@ protected:
   Strand strand;
   String substrate;
   bool supported;   // False if broken splice site
+  bool annotated;
   int posmod(int) const;
 };
 
