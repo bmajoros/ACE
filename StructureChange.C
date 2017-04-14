@@ -36,6 +36,7 @@ StructureChange &StructureChange::operator+=(const StructureChange &other)
   crypticExon=crypticExon || other.crypticExon;
   regulatoryChange=regulatoryChange || other.regulatoryChange;
   deNovoSite=deNovoSite || other.deNovoSite;
+  return *this;
 }
 
 

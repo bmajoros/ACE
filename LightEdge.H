@@ -10,6 +10,7 @@
 #include "BOOM/Vector.H"
 #include "BOOM/Array1D.H"
 #include "BOOM/Strand.H"
+#include "BOOM/Interval.H"
 #include "ContentType.H"
 using namespace std;
 using namespace BOOM;
@@ -29,6 +30,7 @@ public:
   bool isIntergenic() const;
   int getBegin() const;
   int getEnd() const;
+  Interval asInterval() const { return Interval(begin,end); }
   int getLength() const;
   LightVertex *getLeft();
   LightVertex *getRight();

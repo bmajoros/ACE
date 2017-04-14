@@ -1802,6 +1802,9 @@ bool GraphBuilder::buildGraph(bool strict)
     cout<<G->getNumVertices()<<" vertices after pruning"<<endl;
   }
 
+  // Mark any edges that result in intron retention
+  markIntronRetentions();
+
   // Score edges
   cout<<"scoring edges"<<endl;
   const int numEdges=G->getNumEdges();
@@ -1819,6 +1822,44 @@ bool GraphBuilder::buildGraph(bool strict)
   if(!allVerticesAreAnnotated()) changes=true;
   cout<<"done checking"<<endl;
   return true;
+}
+
+
+
+void GraphBuilder::getAnnotatedEdges(Vector<LightEdge*> &into)
+{
+  const int numEdges=G->getNumEdges();
+  for(int i=0 ; i<numEdges ; ++i) {
+    LightEdge *edge=G->getEdge(i);
+    if(edge->isAnnotated()) into.push_back(edge);
+  }
+}
+
+
+
+bool GraphBuilder::coversAnnotatedIntron(const LightEdge &edge,
+					 Vector<LightEdge*> &annotatedEdges)
+{
+  const Interval &I=edge.asInterval();
+  for(Vector<LightEdge*>::iterator cur=annotatedEdges.begin(),
+	end=annotatedEdges.end() ; cur!=end ; ++cur) {
+    LightEdge *other=*cur;
+    if(other->isIntron() && I.contains(other->asInterval())) return true;
+  }
+  return false;
+}
+
+
+void GraphBuilder::markIntronRetentions()
+{
+  Vector<LightEdge*> annotated;
+  getAnnotatedEdges(annotated);
+  const int numEdges=G->getNumEdges();
+  for(int i=0 ; i<numEdges ; ++i) {
+    LightEdge *edge=G->getEdge(i);
+    if(coversAnnotatedIntron(*edge,annotated))
+      dynamic_cast<ACEplus_Edge*>(edge)->getChange().intronRetention=true;
+  }
 }
 
 

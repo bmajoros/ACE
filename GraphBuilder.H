@@ -135,6 +135,10 @@ protected:
 			   const ExonEdge &nextExon);
   void inspectEdgeScore(ACEplus_Edge *,const String &label);
   LightEdge *getAnnotatedEdge(Vector<LightEdge*> &);
+  void getAnnotatedEdges(Vector<LightEdge*> &into);
+  bool coversAnnotatedIntron(const LightEdge &edge,
+			     Vector<LightEdge*> &annotatedEdges);
+  void markIntronRetentions();
 };
 
 #endif
