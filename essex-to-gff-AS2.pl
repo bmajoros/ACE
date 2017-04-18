@@ -33,6 +33,7 @@ while(1) {
     print OUT $transcript->toGff();
   }
   if($status eq "splicing-changes") {
+    my $brokenSite=$ace->hasBrokenSpliceSite();
     my $transcripts=$ace->getAltTranscripts();
     my $n=@$transcripts;
     for(my $i=0 ; $i<$n ; ++$i) {
@@ -44,6 +45,9 @@ while(1) {
       $id=$transcript->getGeneId();
       $id.="_$hap";
       $transcript->setGeneId($id);
+      if($brokenSite) {
+	$transcript->{extraFields}.=" ; broken-site \"true\""
+      }
       print OUT $transcript->toGff();
     }
   }

@@ -184,7 +184,7 @@ double GraphBuilder::scoreEdge(ACEplus_Edge *edge)
     cerr<<"trans="<<transProb<<" from="<<fromType<<" to="<<toType<<endl;
     INTERNAL_ERROR;
   }
-  //score+=transProb; //###
+  score+=transProb; //###
 
   if(numChoices==0) {
     cout<<*edge->getLeft()<<endl;
