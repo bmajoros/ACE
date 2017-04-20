@@ -81,7 +81,7 @@ void TranscriptPaths::computePosteriors()
   for(int i=0 ; i<numPaths ; ++i) {
     TranscriptPath *path=paths[i];
     path->computeScore();
-    logProbs.push_back(path->getScore());
+    logProbs.push_back(path->getScore()/seqLen); // ### added /seqLen
   }
   
   // Marginalize out the paths to get log(P(seq))
@@ -97,7 +97,7 @@ void TranscriptPaths::computePosteriors()
   double sum=0.0;
   for(int i=0 ; i<numPaths ; ++i) {
     TranscriptPath *path=paths[i];
-    double newScore=exp(path->getScore()-logSum);
+    double newScore=exp(path->getScore()/seqLen-logSum);//### added /seqLen
     if(!isFinite(newScore)) {
       cerr<<"newScore="<<newScore<<endl;
       INTERNAL_ERROR;
