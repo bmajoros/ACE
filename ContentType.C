@@ -383,6 +383,13 @@ bool isIntergenic(ContentType t)
 
 
 
+bool isExon(ContentType t)
+{
+  return isCoding(t) || isUTR(t);
+}
+
+
+
 bool isUTR(ContentType t)
 {
   switch(t)

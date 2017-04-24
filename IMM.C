@@ -246,14 +246,17 @@ void IMM::load(istream &is)
   ContentType contentType;
   
   is >> contentType >> N >> phase >> numModels;
+  //cout<<contentType<<"\t"<<N<<"\t"<<phase<<"\t"<<numModels<<endl; // ###
   setContentType(contentType);
+TRACE
   setStrand(::getStrand(contentType)); // ### 9/17/2015
-
+TRACE
   for(int i=0 ; i<numModels ; ++i)
     {
       models->push_back(new BOOM::StringMap<double>(hashTableSize(N)));
       BOOM::StringMap<double> &model=*(*models)[i];
       is >> numElements;
+      //cout<<numElements<<" elements"<<endl;
       for(int j=0 ; j<numElements ; ++j)
 	{
 	  is >> str >> pStr;
@@ -268,6 +271,7 @@ void IMM::load(istream &is)
       revComp=new IMM(is,REVERSE_STRAND);
       revComp->revComp=this;
     }
+  TRACE
 }
 
 

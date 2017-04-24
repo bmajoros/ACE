@@ -73,6 +73,13 @@ void TranscriptPaths::computeLRs(double denom)
 
 
 
+double sigmoid(double x)
+{
+  return 1.0/(1.0+exp(-x));
+}
+
+
+
 void TranscriptPaths::computePosteriors()
 {
   // First, collect log probabilities, log(P(path,seq))
@@ -81,8 +88,7 @@ void TranscriptPaths::computePosteriors()
   for(int i=0 ; i<numPaths ; ++i) {
     TranscriptPath *path=paths[i];
     path->computeScore();
-    logProbs.push_back(path->getScore()/seqLen); // ### added /seqLen
-  }
+    logProbs.push_back(path->getScore());}
   
   // Marginalize out the paths to get log(P(seq))
   double logSum=logProbs.empty() ? 0.0 : sumLogProbs(logProbs);
@@ -90,31 +96,30 @@ void TranscriptPaths::computePosteriors()
     cerr<<"logSum="<<logSum<<endl;
     for(int i=0 ; i<numPaths ; ++i) cerr<<" score="<<paths[i]->getScore();
     cerr<<endl;
-    INTERNAL_ERROR;
-  }
+    INTERNAL_ERROR;}
 
   // Convert P(path,seq) to P(path|seq) by dividing by P(seq)
   double sum=0.0;
   for(int i=0 ; i<numPaths ; ++i) {
     TranscriptPath *path=paths[i];
-    double newScore=exp(path->getScore()/seqLen-logSum);//### added /seqLen
+    double newScore=exp(path->getScore()-logSum);
+    //double newScore=path->getScore()-logSum;
+    //double newScore=sigmoid(path->getScore());
     if(!isFinite(newScore)) {
       cerr<<"newScore="<<newScore<<endl;
-      INTERNAL_ERROR;
-    }
+      INTERNAL_ERROR;}
     path->setScore(newScore);
     sum+=newScore;
   }
 
   // Normalize again in non-log space, to fix rounding issues
-  for(int i=0 ; i<numPaths ; ++i) {
-    TranscriptPath *path=paths[i];
-    path->setScore(path->getScore()/sum);
-    if(!isFinite(path->getScore())) {
-      cerr<<"path score="<<path->getScore()<<endl;
-      INTERNAL_ERROR;
-    }
-  }
+  if(false) {
+    for(int i=0 ; i<numPaths ; ++i) {
+      TranscriptPath *path=paths[i];
+      path->setScore(path->getScore()/sum);
+      if(!isFinite(path->getScore())) {
+	cerr<<"path score="<<path->getScore()<<endl;
+	INTERNAL_ERROR;}}}
 }
 
 

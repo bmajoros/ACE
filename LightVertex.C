@@ -47,6 +47,20 @@ SignalType LightVertex::getType() const
 
 
 
+Interval LightVertex::getInterval() const
+{
+  return Interval(begin,end);
+}
+
+
+
+int LightVertex::distanceTo(const LightVertex &other) const
+{
+  return getInterval().distanceTo(other.getInterval());
+}
+
+
+
 int LightVertex::getBegin() const
 {
   return begin;

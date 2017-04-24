@@ -329,6 +329,7 @@ void ACEplus::checkProjection(const String &outGff,bool &mapped,
 
   // Extract paths
   cout<<"extracting paths"<<endl;
+  cout<<G->getNumVertices()<<" vertices, "<<G->getNumEdges()<<" edge"<<endl;
   TranscriptPaths paths(*G,model.MAX_ALT_STRUCTURES,altSeq.getLength());
   cout<<paths.numPaths()<<" paths"<<endl;
 

@@ -11,6 +11,7 @@
 #include "SignalType.H"
 #include "BOOM/Strand.H"
 #include "BOOM/Comparator.H"
+#include "BOOM/Interval.H"
 using namespace std;
 using namespace BOOM;
 
@@ -28,6 +29,8 @@ public:
   inline bool isSpliceSite() { return ::isSpliceSite(type); }
   virtual int getBegin() const;
   virtual int getEnd() const;
+  virtual Interval getInterval() const;
+  virtual int distanceTo(const LightVertex &) const;
   virtual int getID() const;
   virtual void setID(int);
   virtual float getScore() const;

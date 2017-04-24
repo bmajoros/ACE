@@ -42,7 +42,7 @@ static String contentTypeString(ContentType type)
 void ACEplus_Edge::printOn(ostream &os)
 {
   int supportString=supported ? 1 : 0;
-  bool useFrames=::isIntron(type) || ::isCoding(type);
+  bool useFrames=false; //::isIntron(type) || ::isCoding(type);
   //bool needNewline=false;
   if(useFrames) {
     for(int i=0 ; i<3 ; ++i)

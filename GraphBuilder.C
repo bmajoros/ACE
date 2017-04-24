@@ -924,6 +924,7 @@ void GraphBuilder::linkDeNovoLeft(ACEplus_Vertex *v,int id)
 #ifdef SANITY_CHECKS
       if(w->getType()==v->getType()) INTERNAL_ERROR;
 #endif
+      //if(::isExon(type) && v->distanceTo(*w)>model.maxDeNovoExonLen) continue;
       ACEplus_Edge *edge=
 	newEdge(substrate,type,w,v,begin,end,strand,edgeID);
       if(!edge) continue;
@@ -956,6 +957,7 @@ void GraphBuilder::linkDeNovoRight(ACEplus_Vertex *v,int id)
 #ifdef SANITY_CHECKS
       if(v->getType()==w->getType()) INTERNAL_ERROR;
 #endif
+      //if(::isExon(type) && v->distanceTo(*w)>model.maxDeNovoExonLen) continue;
       ACEplus_Edge *edge=
 	newEdge(substrate,type,v,w,begin,end,strand,edgeID);
       if(!edge) continue;
@@ -1263,7 +1265,7 @@ void GraphBuilder::getAnnotatedExons(Vector<ExonEdge> &exons)
   const int numEdges=G->getNumEdges();
   for(int i=0 ; i<numEdges ; ++i) {
     LightEdge *edge=G->getEdge(i);
-    if(edge->isExon()) {
+    if(edge->isExon() && edge->isAnnotated()) {
       Interval interval(edge->getLeft()->getEnd(),
 			edge->getRight()->getBegin());
       ExonEdge exonEdge;
@@ -1546,6 +1548,9 @@ int GraphBuilder::distanceOfExonicVariantToEnd(const Interval &variant,
   const int dist1=exon.interval.getEnd()-variant.getBegin();
   const int dist2=variant.getEnd()-exon.interval.getBegin();
   const int minDist=dist1<dist2 ? dist1 : dist2;
+#ifdef SANITY_CHECKS
+  if(minDist<0) INTERNAL_ERROR;
+#endif
   return minDist;
 }
 
@@ -1812,7 +1817,10 @@ bool GraphBuilder::buildGraph(bool strict)
   for(int i=0 ; i<numEdges ; ++i) {
     LightEdge *edge=G->getEdge(i);
     scoreEdge(dynamic_cast<ACEplus_Edge*>(edge));
-    if(!isFinite(edge->getScore())) G->dropEdge(i);
+    if(!isFinite(edge->getScore())) {
+      cout<<"-inf edge score: "<<*edge<<endl;
+      G->dropEdge(i);
+    }
   }
   cout<<"deleting null edges"<<endl;
   G->deleteNullEdges();
@@ -1845,6 +1853,9 @@ bool GraphBuilder::coversAnnotatedIntron(const LightEdge &edge,
 	end=annotatedEdges.end() ; cur!=end ; ++cur) {
     LightEdge *other=*cur;
     if(other->isIntron() && I.contains(other->asInterval())) return true;
+    if(other->isIntron() && I.contains(other->asInterval())) {
+      cout<<"XXX "<<edge<<" covers "<<*other<<endl; // ###
+    }
   }
   return false;
 }
@@ -1857,7 +1868,7 @@ void GraphBuilder::markIntronRetentions()
   const int numEdges=G->getNumEdges();
   for(int i=0 ; i<numEdges ; ++i) {
     LightEdge *edge=G->getEdge(i);
-    if(coversAnnotatedIntron(*edge,annotated))
+    if(edge->isExon() && coversAnnotatedIntron(*edge,annotated))
       dynamic_cast<ACEplus_Edge*>(edge)->getChange().intronRetention=true;
   }
 }

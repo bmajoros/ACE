@@ -73,6 +73,7 @@ BOOM::String contentTypeToString(ContentType);
 BOOM::String contentTypeNiceString(ContentType);
 ContentType stringToContentType(const BOOM::String &);
 bool isCoding(ContentType);
+bool isExon(ContentType);
 bool isIntron(ContentType);
 bool isIntergenic(ContentType);
 bool isUTR(ContentType);
