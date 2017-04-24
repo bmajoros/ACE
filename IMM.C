@@ -244,34 +244,25 @@ void IMM::load(istream &is)
   int numModels, numElements;
   BOOM::String str, pStr;
   ContentType contentType;
-  
   is >> contentType >> N >> phase >> numModels;
-  //cout<<contentType<<"\t"<<N<<"\t"<<phase<<"\t"<<numModels<<endl; // ###
   setContentType(contentType);
-TRACE
   setStrand(::getStrand(contentType)); // ### 9/17/2015
-TRACE
-  for(int i=0 ; i<numModels ; ++i)
-    {
-      models->push_back(new BOOM::StringMap<double>(hashTableSize(N)));
-      BOOM::StringMap<double> &model=*(*models)[i];
-      is >> numElements;
-      //cout<<numElements<<" elements"<<endl;
-      for(int j=0 ; j<numElements ; ++j)
-	{
-	  is >> str >> pStr;
-	  model.lookup(str.c_str(),str.length())=pStr.asDouble();
-	}
-    }
-
-  if(getStrand()==FORWARD_STRAND)
-    {
-      BOOM::String modelType;
-      is >> modelType;
-      revComp=new IMM(is,REVERSE_STRAND);
-      revComp->revComp=this;
-    }
-  TRACE
+  for(int i=0 ; i<numModels ; ++i) {
+    models->push_back(new BOOM::StringMap<double>(hashTableSize(N)));
+    BOOM::StringMap<double> &model=*(*models)[i];
+    is >> numElements;
+    for(int j=0 ; j<numElements ; ++j) {
+      is >> str >> pStr;
+      double p=pStr.asDouble();
+      /*if(p>10.0) p=10.0;
+	else if(p<-1.0) p=-1.0;*/
+      model.lookup(str.c_str(),str.length())=p;//pStr.asDouble();
+    }}
+  if(getStrand()==FORWARD_STRAND) {
+    BOOM::String modelType;
+    is >> modelType;
+    revComp=new IMM(is,REVERSE_STRAND);
+    revComp->revComp=this; }
 }
 
 

@@ -41,6 +41,29 @@ def writeModel(contentType,N,features,sign,revcomp,OUT):
         if(revcomp): feature=Translation.reverseComplement(feature)
         print(feature+"\n"+str(score),file=OUT)
 
+def loadFeatures(featureFile):
+    global N
+    features={}
+    with open(featureFile,"rt") as IN:
+        for line in IN:
+            fields=line.rstrip().split()
+            if(len(fields)!=2): continue
+            (feature,score)=fields
+            if(rex.find("Intercept",feature)): continue
+            if(score=="."): score=0.0
+            else: score=float(score)
+            features[feature]=score
+            N=len(feature)
+    return features
+
+def normalize(features):
+    maxValue=0.0
+    for x in features.values():
+        absX=abs(x)
+        if(absX>maxValue): maxValue=absX
+    for feature in features.keys():
+        features[feature]/=maxValue
+
 #=========================================================================
 # main()
 #=========================================================================
@@ -59,17 +82,8 @@ elif(contentType=="INTRON"):
 else: raise Exception(contentType+" must be EXON or INTRON")
 
 N=0
-features={}
-with open(featureFile,"rt") as IN:
-    for line in IN:
-        fields=line.rstrip().split()
-        if(len(fields)!=2): continue
-        (feature,score)=fields
-        if(rex.find("Intercept",feature)): continue
-        if(score=="."): score=0.0
-        else: score=float(score)
-        features[feature]=score
-        N=len(feature)
+features=loadFeatures(featureFile)
+normalize(features)
 
 OUT=open(outFile,"wt")
 writeModel(contentType,N,features,sign,False,OUT)
