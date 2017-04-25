@@ -1339,6 +1339,10 @@ void GraphBuilder::getAllVertices(int from,int to,SignalType type,
 				      
 
 
+/*
+  This function is only intended to be used for variants that weaken
+  the exon definition score for an exon.
+ */
 void GraphBuilder::addExonSkippingEdge(ExonEdge exon)
 {
   // Re-sort the graph and set IDs so the IDs will be stable
