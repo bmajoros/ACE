@@ -46,6 +46,10 @@ void TranscriptPath::computeScore()
   for(int i=0 ; i<N ; ++i) {
     ACEplus_Edge *edge=dynamic_cast<ACEplus_Edge*>(edges[i]);
     score+=edge->getScore()+edge->getRight()->getScore();
+
+    //const double POW=2.0;
+    //score+=edge->getScore()+POW*edge->getRight()->getScore(); // ###
+
     //score+=edge->getRight()->getScore(); //### no content sensors!!!
     if(!isFinite(edge->getScore())) cout<<*edge<<endl;
     if(!isFinite(edge->getRight()->getScore()))

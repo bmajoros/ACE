@@ -15,16 +15,50 @@ import ProgramName
 from FastaReader import FastaReader
 from NgramIterator import NgramIterator
 
-def getCounts(seq):
+OUT_OF_FRAME_ONLY=True
+IN_FRAME_ONLY=False
+
+def getCounts_OOF(seq,frame):
+    hash={}
+    for i in range(len(seq)-5):
+        if(frame!=0):
+            hexamer=seq[i:i+6]
+            hash[hexamer]=hash.get(hexamer,0)+1
+        frame=(frame+1)%3
+    return hash
+
+def getCounts_inFrame(seq,frame):
+    hash={}
+    for i in range(len(seq)-5):
+        if(frame==0):
+            hexamer=seq[i:i+6]
+            hash[hexamer]=hash.get(hexamer,0)+1
+        frame=(frame+1)%3
+    return hash
+
+def getCounts(seq,defline):
+    (id,attributes)=FastaReader.parseDefline(defline)
+    frame=attributes.get("frame",None)
+    if(frame is not None):
+        if(OUT_OF_FRAME_ONLY):
+            return getCounts_OOF(seq,int(frame))
+        elif(IN_FRAME_ONLY):
+            return getCounts_inFrame(seq,int(frame))
     hash={}
     for i in range(len(seq)-5):
         hexamer=seq[i:i+6]
         hash[hexamer]=hash.get(hexamer,0)+1
-    #for hex in hash.keys(): print(hex,hash[hex])
     return hash
 
 def getVector(counts,L):
-    sampleSize=L-5
+    #sampleSize=L-5
+    sampleSize=0
+    iter=NgramIterator("ACGT",6)
+    while(True):
+        hexamer=iter.nextString()
+        if(hexamer is None): break
+        count=counts.get(hexamer,0)
+        sampleSize+=count
     vector=[]
     iter=NgramIterator("ACGT",6)
     while(True):
@@ -48,7 +82,7 @@ def process(filename,label):
         (defline,seq)=reader.nextSequence()
         if(not defline): break
         if(len(seq)<50): continue
-        counts=getCounts(seq)
+        counts=getCounts(seq,defline)
         vector=getVector(counts,len(seq))
         emit(vector,label)
     reader.close()

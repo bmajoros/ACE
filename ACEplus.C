@@ -142,18 +142,27 @@ void ACEplus::processConfig(const String &filename)
   model.MIN_EXON_LEN=MIN_EXON_LEN;
   model.MIN_INTRON_LEN=MIN_INTRON_LEN;
   model.NMD_DISTANCE_PARM=NMD_DISTANCE_PARM;
-  model.EXON_STRENGTHENING_THRESHOLD=
-    config.getFloatOrDie("exon-strengthening-threshold");
-  model.EXON_WEAKENING_THRESHOLD=
-    config.getFloatOrDie("exon-weakening-threshold");
+  if(config.isDefined("exon-strengthening-threshold"))
+    model.EXON_STRENGTHENING_THRESHOLD=
+      config.getFloatOrDie("exon-strengthening-threshold");
+  else model.EXON_STRENGTHENING_THRESHOLD=2.0;
+  if(config.isDefined("exon-weakening-threshold"))
+    model.EXON_WEAKENING_THRESHOLD=
+      config.getFloatOrDie("exon-weakening-threshold");
+  else model.EXON_WEAKENING_THRESHOLD=0.5;
   model.MIN_EXON_INTRON_RATIO=
     config.getFloatOrDie("min-exon-definition-score");
   model.allowExonSkipping=allowExonSkipping;
   model.allowIntronRetention=allowIntronRetention;
   model.allowCrypticSites=allowCrypticSites;
   model.allowDeNovoSites=config.getBoolOrDie("allow-denovo-sites");
-  model.allowCrypticExons=config.getBoolOrDie("allow-cryptic-exons");
-  model.allowRegulatoryChanges=config.getBoolOrDie("allow-regulatory-changes");
+  if(config.isDefined("allow-cryptic-exons"))
+    model.allowCrypticExons=config.getBoolOrDie("allow-cryptic-exons");
+  else model.allowCrypticExons=false;
+  if(config.isDefined("allow-regulatory-changes"))
+    model.allowRegulatoryChanges=
+      config.getBoolOrDie("allow-regulatory-changes");
+  else model.allowRegulatoryChanges=false;
   model.MIN_SCORE=config.getFloatOrDie("min-path-score");
   model.MAX_ALT_STRUCTURES=config.getIntOrDie("max-alt-structures");
   if(config.isDefined("coef-denovo-exon"))
@@ -162,7 +171,8 @@ void ACEplus::processConfig(const String &filename)
     model.maxIntronRetentionLen=
       config.getIntOrDie("max-intron-retention-length");
   if(config.isDefined("min-intron-retention-LLR"))
-    model.minDeNovoExonLLR=config.getFloatOrDie("min-intron-retention-LLR");
+    model.minIntronRetentionLLR= // ### fixed 5/5/2017
+      config.getFloatOrDie("min-intron-retention-LLR");
   if(config.isDefined("max-denovo-exon-length"))
     model.maxDeNovoExonLen=config.getIntOrDie("max-denovo-exon-length");
   if(config.isDefined("min-denovo-exon-LLR"))

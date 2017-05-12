@@ -184,7 +184,7 @@ double GraphBuilder::scoreEdge(ACEplus_Edge *edge)
     cerr<<"trans="<<transProb<<" from="<<fromType<<" to="<<toType<<endl;
     INTERNAL_ERROR;
   }
-  score+=transProb; //###
+  score+=transProb;
 
   if(numChoices==0) {
     cout<<*edge->getLeft()<<endl;
@@ -924,7 +924,7 @@ void GraphBuilder::linkDeNovoLeft(ACEplus_Vertex *v,int id)
 #ifdef SANITY_CHECKS
       if(w->getType()==v->getType()) INTERNAL_ERROR;
 #endif
-      //if(::isExon(type) && v->distanceTo(*w)>model.maxDeNovoExonLen) continue;
+      //if(::isExon(type) && v->distanceTo(*w)>model.maxDeNovoExonLen) break;
       ACEplus_Edge *edge=
 	newEdge(substrate,type,w,v,begin,end,strand,edgeID);
       if(!edge) continue;
@@ -957,7 +957,7 @@ void GraphBuilder::linkDeNovoRight(ACEplus_Vertex *v,int id)
 #ifdef SANITY_CHECKS
       if(v->getType()==w->getType()) INTERNAL_ERROR;
 #endif
-      //if(::isExon(type) && v->distanceTo(*w)>model.maxDeNovoExonLen) continue;
+      //if(::isExon(type) && v->distanceTo(*w)>model.maxDeNovoExonLen) break;
       ACEplus_Edge *edge=
 	newEdge(substrate,type,v,w,begin,end,strand,edgeID);
       if(!edge) continue;
@@ -1232,6 +1232,9 @@ double GraphBuilder::exonDefChange(Interval interval)
   double altNormalized=altScore/interval.length();
   double refNormalized=refScore/(refEnd-refBegin);
   double change=altNormalized-refNormalized;
+
+  cout<<"exonDefChange="<<exp(change)<<endl; // ###
+
   return exp(change); // likelihood ratio (not logarithmic)
 }
 
@@ -1250,12 +1253,22 @@ double GraphBuilder::exonIntronRatio(LightVertex *from,
 
 double GraphBuilder::exonIntronRatio(Interval interval)
 {
-  double exonScore=
-    model.contentSensors->score(EXON,interval.getBegin(),interval.getEnd());
-  double intronScore=
-    model.contentSensors->score(INTRON,interval.getBegin(),interval.getEnd());
-  double ratio=exonScore-intronScore;
-  return exp(ratio); // likelihood ratio (not logarithmic)
+  const bool MARKOV_CHAIN=false;
+  double ratio;
+  if(MARKOV_CHAIN) {
+    double exonScore=
+      model.contentSensors->score(EXON,interval.getBegin(),interval.getEnd());
+    double intronScore=
+      model.contentSensors->score(INTRON,interval.getBegin(),
+				  interval.getEnd());
+    ratio=exonScore-intronScore;
+  }
+  else { // not a MC: it's already interpretable as a ratio
+    ratio=
+      model.contentSensors->score(EXON,interval.getBegin(),interval.getEnd());
+  }
+  return ratio; // log likelihood ratio
+  //return exp(ratio); // likelihood ratio (not logarithmic)
 }
 
 
@@ -1857,9 +1870,9 @@ bool GraphBuilder::coversAnnotatedIntron(const LightEdge &edge,
 	end=annotatedEdges.end() ; cur!=end ; ++cur) {
     LightEdge *other=*cur;
     if(other->isIntron() && I.contains(other->asInterval())) return true;
-    if(other->isIntron() && I.contains(other->asInterval())) {
+    /*if(other->isIntron() && I.contains(other->asInterval())) {
       cout<<"XXX "<<edge<<" covers "<<*other<<endl; // ###
-    }
+      }*/
   }
   return false;
 }

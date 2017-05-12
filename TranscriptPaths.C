@@ -73,6 +73,7 @@ void TranscriptPaths::computeLRs(double denom)
 
 
 
+// ### Not currently used:
 double sigmoid(double x)
 {
   return 1.0/(1.0+exp(-x));
