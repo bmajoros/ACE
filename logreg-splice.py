@@ -16,6 +16,8 @@ import ProgramName
 from FastaReader import FastaReader
 from FastaWriter import FastaWriter
 import TempFilename
+from Rex import Rex
+rex=Rex()
 
 ACEPLUS=os.environ["ACEPLUS"]
 ALPHABET=("A","C","G","T")
@@ -65,12 +67,22 @@ def train(begin,end,positives,negatives,consensuses,featuresFile,betasFile):
               ALPHA+" "+betasFile) #+" 2> /dev/null")
     #exit(featuresFile+"\t"+betasFile)
     betas=loadBetas(betasFile)
-    output(betas)
+    return betas
 
-def output(betas):
+def output(betas,signalType,consensusOffset,consensusLen,windowLen):
+    print("LogisticSensor")
+    alphabetSize=5 # ACGNT
+    print(signalType,0.0,windowLen,alphabetSize,windowLen,consensusOffset,
+          consensusLen,"+",sep="\t")
     for pair in betas:
         (feature,beta)=pair
-        print(feature,beta,sep="\t")
+        pos=0; nuc=""
+        if(feature=="intercept"): 
+            print(feature,beta,sep="\t")
+        else:
+            if(not rex.find("(\d+)(\S+)",feature)):
+                raise Exception("can't parse "+feature)
+            print(rex[1],rex[2],beta,sep="\t")
 
 def loadBetas(filename):
     betas=[]
@@ -91,9 +103,10 @@ def loadBetas(filename):
 #=========================================================================
 # main()
 #=========================================================================
-if(len(sys.argv)!=7):
-    exit(ProgramName.get()+" <pos.fasta> <neg.fasta> <left-context> <right-context> <alpha> <consensus,consensus,...\n")
-(posFasta,negFasta,LEFT_MARGIN,RIGHT_MARGIN,ALPHA,consensuses)=sys.argv[1:]
+if(len(sys.argv)!=8):
+    exit(ProgramName.get()+" <pos.fasta> <neg.fasta> <left-context> <right-context> <alpha> <consensus-list> <type=GT|AG>\n")
+(posFasta,negFasta,LEFT_MARGIN,RIGHT_MARGIN,ALPHA,consensuses,signalType)=\
+    sys.argv[1:]
 consensuses=consensuses.split(",")
 LEFT_MARGIN=int(LEFT_MARGIN)
 RIGHT_MARGIN=int(RIGHT_MARGIN)
@@ -104,7 +117,9 @@ tempFile1=TempFilename.generate(".fasta")
 tempFile2=TempFilename.generate(".betas")
 begin=80-LEFT_MARGIN
 end=82+RIGHT_MARGIN
-train(begin,end,positives,negatives,consensuses,tempFile1,tempFile2)
+betas=train(begin,end,positives,negatives,consensuses,tempFile1,tempFile2)
 os.remove(tempFile1); os.remove(tempFile2)
+consensusLen=2 # splice sites only
+output(betas,signalType,LEFT_MARGIN,consensusLen,LEFT_MARGIN+2+RIGHT_MARGIN)
 
 

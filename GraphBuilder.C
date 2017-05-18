@@ -157,7 +157,7 @@ double GraphBuilder::scoreEdge(ACEplus_Edge *edge)
     inspectEdgeScore(edge,change.intronRetention ? "intron-retention" :
     "denovo-exon");*/
 
-  // Apply scaling factor if one is set
+  // Apply scaling factor if one is set (defaults to 1.0)
   score*=model.sensorScale;
 
   // Get duration probability

@@ -175,6 +175,12 @@ $(OBJ)/GarbageCollector.o:\
 	$(CC) $(CFLAGS) -o $(OBJ)/GarbageCollector.o -c \
 		GarbageCollector.C
 #---------------------------------------------------------
+$(OBJ)/LogisticSensor.o:\
+		LogisticSensor.H \
+		LogisticSensor.C
+	$(CC) $(CFLAGS) -o $(OBJ)/LogisticSensor.o -c \
+		LogisticSensor.C
+#---------------------------------------------------------
 $(OBJ)/WMM.o:\
 		WMM.H \
 		WMM.C
@@ -3417,6 +3423,7 @@ $(OBJ)/ACEplus_Vertex.o:\
 		ACEplus_Vertex.C
 #---------------------------------------------------------
 aceplus: \
+		$(OBJ)/LogisticSensor.o \
 		$(OBJ)/TrellisLink.o \
 		$(OBJ)/NBest.o \
 		$(OBJ)/ACEplus_Vertex.o \
@@ -3493,6 +3500,7 @@ aceplus: \
 		$(OBJ)/ProjectionChecker.o \
 		$(OBJ)/aceplus.o
 	$(CC) $(LDFLAGS) -o aceplus \
+		$(OBJ)/LogisticSensor.o \
 		$(OBJ)/TrellisLink.o \
 		$(OBJ)/NBest.o \
 		$(OBJ)/ACEplus_Vertex.o \
