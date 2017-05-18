@@ -13,8 +13,9 @@
 using namespace std;
 using namespace BOOM;
 
-TranscriptPaths::TranscriptPaths(LightGraph &G,int maxPaths,int seqLen)
-  : G(G), seqLen(seqLen)
+TranscriptPaths::TranscriptPaths(LightGraph &G,int maxPaths,int seqLen,
+				 const Model &model)
+  : G(G), seqLen(seqLen), model(model)
 {
   buildPaths(maxPaths);
 }
@@ -54,7 +55,7 @@ void TranscriptPaths::buildPaths(int N)
   //cout<<"scoring paths "<<paths.size()<<endl;
   for(Vector<TranscriptPath*>::iterator cur=paths.begin(), end=paths.end() ;
       cur!=end ; ++cur) 
-    (*cur)->computeScore();
+    (*cur)->computeScore(model);
 }
 
 
@@ -65,7 +66,7 @@ void TranscriptPaths::computeLRs(double denom)
   int numPaths=paths.size();
   for(int i=0 ; i<numPaths ; ++i) {
     TranscriptPath *path=paths[i];
-    path->computeScore();
+    path->computeScore(model);
     const double llr=path->getScore()/L-denom;
     path->setScore(exp(llr));
   }
@@ -88,7 +89,7 @@ void TranscriptPaths::computePosteriors()
   int numPaths=paths.size();
   for(int i=0 ; i<numPaths ; ++i) {
     TranscriptPath *path=paths[i];
-    path->computeScore();
+    path->computeScore(model);
     logProbs.push_back(path->getScore());}
   
   // Marginalize out the paths to get log(P(seq))

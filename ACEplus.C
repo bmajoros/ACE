@@ -179,6 +179,8 @@ void ACEplus::processConfig(const String &filename)
     model.minDeNovoExonLLR=config.getFloatOrDie("min-denovo-exon-LLR");
   if(config.isDefined("sensor-scale"))
     model.sensorScale=config.getFloatOrDie("sensor-scale");
+  if(config.isDefined("exon-intercept"))
+    model.exonIntercept=config.getFloatOrDie("exon-intercept");
 
   // Use LLR for splice site signal sensors
   ContentSensor *bg=loadContentSensor("splice-background-model",config);
@@ -270,13 +272,13 @@ double ACEplus::getRefLikelihood(const Labeling &refLab,
   //cout<<"done building graph for ref"<<endl;
   LightGraph *G=graphBuilder.getGraph();
   if(!G) return NEGATIVE_INFINITY;
-  TranscriptPaths paths(*G,model.MAX_ALT_STRUCTURES,refSeq.getLength());
+  TranscriptPaths paths(*G,model.MAX_ALT_STRUCTURES,refSeq.getLength(),model);
   if(paths.numPaths()!=1) {
     //throw String("Wrong number of reference paths: ")+paths.numPaths();
     cout<<"number of ref paths = "<<paths.numPaths()<<endl;
     return NEGATIVE_INFINITY; }
   TranscriptPath *path=paths[0];
-  path->computeScore();
+  path->computeScore(model);
   //path->dumpScores();
   double score=path->getScore();
   delete signals; delete G;
@@ -340,7 +342,7 @@ void ACEplus::checkProjection(const String &outGff,bool &mapped,
   // Extract paths
   cout<<"extracting paths"<<endl;
   cout<<G->getNumVertices()<<" vertices, "<<G->getNumEdges()<<" edge"<<endl;
-  TranscriptPaths paths(*G,model.MAX_ALT_STRUCTURES,altSeq.getLength());
+  TranscriptPaths paths(*G,model.MAX_ALT_STRUCTURES,altSeq.getLength(),model);
   cout<<paths.numPaths()<<" paths"<<endl;
 
   // Compute posteriors

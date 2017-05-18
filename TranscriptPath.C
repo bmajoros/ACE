@@ -38,7 +38,7 @@ ACEplus_Edge *TranscriptPath::operator[](int i)
 
 
 
-void TranscriptPath::computeScore()
+void TranscriptPath::computeScore(const Model &model)
 {
   int N=edges.size();
   if(N==0) return 0.0;
@@ -51,9 +51,7 @@ void TranscriptPath::computeScore()
     if(!isFinite(edge->getRight()->getScore()))
       cout<<*(edge->getRight())<<endl;
   }
-
-  score+=4.055337; // ### intercept term for exons
-
+  score+=model.exonIntercept;
   return score;
 }
 

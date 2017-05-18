@@ -76,6 +76,7 @@ def output(betas,signalType,consensusOffset,consensusLen,windowLen):
           consensusLen,"+",sep="\t")
     for pair in betas:
         (feature,beta)=pair
+        beta=float(beta)/2.0
         pos=0; nuc=""
         if(feature=="intercept"): 
             print(feature,beta,sep="\t")

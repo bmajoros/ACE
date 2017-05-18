@@ -12,6 +12,7 @@
 #include "BOOM/Comparator.H"
 #include "ACEplus_Edge.H"
 #include "ACEplus_Vertex.H"
+#include "Model.H"
 using namespace std;
 using namespace BOOM;
 
@@ -25,7 +26,7 @@ public:
   ACEplus_Edge *lastEdge();
   ACEplus_Vertex *lastVertex();
   double getScore() const { return score; }
-  void computeScore();
+  void computeScore(const Model &);
   void setScore(double s) { score=s; }
   TranscriptPath *clone();
   const StructureChange &getChange() const;

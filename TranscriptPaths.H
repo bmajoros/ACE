@@ -10,13 +10,14 @@
 #include "BOOM/Vector.H"
 #include "LightGraph.H"
 #include "TranscriptPath.H"
+#include "Model.H"
 using namespace std;
 using namespace BOOM;
 
 
 class TranscriptPaths {
 public:
-  TranscriptPaths(LightGraph &,int maxPaths,int seqLen);
+  TranscriptPaths(LightGraph &,int maxPaths,int seqLen,const Model &);
   virtual ~TranscriptPaths();
   int numPaths() const;
   TranscriptPath *operator[](int);
@@ -27,6 +28,7 @@ public:
 protected:
   LightGraph &G;
   int seqLen;
+  const Model &model;
   Vector<TranscriptPath*> paths;
   void buildPaths(int maxPaths);
 };

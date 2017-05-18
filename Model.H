@@ -40,6 +40,7 @@ struct Model {
   bool allowExonSkipping, allowIntronRetention, allowCrypticSites;
   bool allowDeNovoSites, allowCrypticExons, allowRegulatoryChanges;
   float sensorScale;
+  float exonIntercept;
   Model();
   virtual ~Model();
 };

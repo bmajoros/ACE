@@ -15,7 +15,8 @@ Model::Model()
     intronLengthDistr(NULL), intergenicLengthDistr(NULL),
     spliceShiftDistr(NULL), transitions(NULL),
     maxIntronRetentionLen(0), minIntronRetentionLLR(0.0),
-    maxDeNovoExonLen(0), minDeNovoExonLLR(0.0), sensorScale(1.0)
+    maxDeNovoExonLen(0), minDeNovoExonLLR(0.0), sensorScale(1.0),
+    exonIntercept(0.0)
 {
   // ctor
 }
