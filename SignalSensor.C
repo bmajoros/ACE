@@ -16,6 +16,7 @@
 #include "MddTree.H"
 #include "BranchAcceptor.H"
 #include "SignalPeptideSensor.H"
+#include "LogisticSensor.H"
 
 const int PRIME_HASH_SIZE=97;
 
@@ -119,6 +120,8 @@ SignalSensor *SignalSensor::load(istream &is,GarbageCollector &gc)
     return new BranchAcceptor(gc,is);
   if(modelType=="SignalPeptide")
     return new SignalPeptideSensor(gc,is);
+  if(modelType=="LogisticSensor")
+    return new LogisticSensor(gc,is);
 
   throw BOOM::String("Unrecognized model type in SignalSensor::load(): ")+
     modelType;
