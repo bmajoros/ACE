@@ -39,6 +39,7 @@ struct Model {
   float coefDenovoExon;   // adjustment to transition prob for de novo exons
   bool allowExonSkipping, allowIntronRetention, allowCrypticSites;
   bool allowDeNovoSites, allowCrypticExons, allowRegulatoryChanges;
+  float sensorScale;
   Model();
   virtual ~Model();
 };

@@ -82,14 +82,14 @@ ACEplus_Edge *GraphBuilder::newEdge(const String &substrate,ContentType type,
   //cout<<"newEdge("<<type<<")"<<endl;
   if(end-begin<1) {
     //cout<<*G<<endl;
-    cout<<"edge length < 1 : "<<begin<<"-"<<end<<" "<<substrate<<" "
-	<<type<<endl;
+    //cout<<"edge length < 1 : "<<begin<<"-"<<end<<" "<<substrate<<" "
+    //<<type<<endl;
     return NULL;
     //INTERNAL_ERROR
   }
 
   if(G->edgeExists(substrate,strand,begin,end,type))  {
-    cout<<"edge exists -- ignoring: "<<begin<<"-"<<end<<" "<<type<<endl;
+    //cout<<"edge exists -- ignoring: "<<begin<<"-"<<end<<" "<<type<<endl;
     return NULL;
   }
   //cout<<"returning new edge"<<endl;
@@ -157,6 +157,9 @@ double GraphBuilder::scoreEdge(ACEplus_Edge *edge)
     inspectEdgeScore(edge,change.intronRetention ? "intron-retention" :
     "denovo-exon");*/
 
+  // Apply scaling factor if one is set
+  score*=model.sensorScale;
+
   // Get duration probability
   const int L=edge->getLength();
   DiscreteDistribution *distr=NULL;
@@ -170,7 +173,7 @@ double GraphBuilder::scoreEdge(ACEplus_Edge *edge)
     cerr<<"length="<<L<<", duration score="<<durationScore<<endl;
     INTERNAL_ERROR;
   }
-  score+=durationScore;
+  //score+=durationScore;
 
   // Get transition probability
   const int numChoices=edge->getLeft()->getEdgesOut().size();
@@ -184,7 +187,7 @@ double GraphBuilder::scoreEdge(ACEplus_Edge *edge)
     cerr<<"trans="<<transProb<<" from="<<fromType<<" to="<<toType<<endl;
     INTERNAL_ERROR;
   }
-  score+=transProb;
+  //score+=transProb;
 
   if(numChoices==0) {
     cout<<*edge->getLeft()<<endl;
@@ -687,18 +690,12 @@ void GraphBuilder::pruneUnreachable(LightGraph &G)
   vertexRightCounts.setAllTo(0);
   edgeLeftCounts.setAllTo(0);
   edgeRightCounts.setAllTo(0);
-  //cout<<"leftSweep"<<endl;
   leftSweep(G,vertexLeftCounts,edgeLeftCounts);
-  //cout<<"rightSweep"<<endl;
   rightSweep(G,vertexRightCounts,edgeRightCounts);
-  //cout<<"deleteUnreachable"<<endl;
   deleteUnreachable(G,vertexLeftCounts,vertexRightCounts,
 		    edgeLeftCounts,edgeRightCounts);
-  //cout<<"delete null vertices"<<endl;
   G.deleteNullVertices();
-  //cout<<"delete null edge"<<endl;
   G.deleteNullEdges();
-  //cout<<"sort"<<endl;
   G.sort();
 }
 
@@ -738,29 +735,27 @@ void GraphBuilder::findVariants(Vector<Interval> &variants)
 
 void GraphBuilder::handleDeNovoSites()
 {
-  cout<<"handleDeNovoSites()"<<endl;
-
   // First, find all variants
   if(variants.isEmpty()) findVariants(variants);
-  cout<<variants.size()<<" variants found"<<endl;
+  //cout<<variants.size()<<" variants found"<<endl;
 
   // Now scan for de novo sites overlapping any variant
   Vector<ACEplus_Vertex*> newVertices;
   scanDeNovo(*model.signalSensors->donorSensor,variants,newVertices);
-  cout<<newVertices.size()<<" new vertices after scanning for donors"<<endl;
+  //cout<<newVertices.size()<<" new vertices after scanning for donors"<<endl;
   scanDeNovo(*model.signalSensors->acceptorSensor,variants,newVertices);
-  cout<<newVertices.size()<<" after scanning for acceptors"<<endl;
+  //cout<<newVertices.size()<<" after scanning for acceptors"<<endl;
 
   // Now link the new vertices to other vertices
-  cout<<G->getNumVertices()<<" vertices before linking"<<endl;
+  //cout<<G->getNumVertices()<<" vertices before linking"<<endl;
   linkDeNovoVertices(newVertices);
 
   // If cryptic exons are enabled, scan for partner signals to complete
   // new exons
-  cout<<G->getNumVertices()<<" vertices before adding cryptic exons"<<endl;
+  //cout<<G->getNumVertices()<<" vertices before adding cryptic exons"<<endl;
   if(model.allowCrypticExons) addCrypticExons(newVertices);
-  cout<<newVertices.size()<<" after scanning for cryptic exons"<<endl;
-  cout<<G->getNumVertices()<<" vertices after adding cryptic exons"<<endl;
+  //cout<<newVertices.size()<<" after scanning for cryptic exons"<<endl;
+  //cout<<G->getNumVertices()<<" vertices after adding cryptic exons"<<endl;
 }
 
 
@@ -990,7 +985,7 @@ bool GraphBuilder::allVerticesAreAnnotated()
 void GraphBuilder::addCrypticExons(Vector<ACEplus_Vertex*> &newVertices)
 {
   G->sort();
-  cout<<newVertices.size()<<" new vertices"<<endl;
+  //cout<<newVertices.size()<<" new vertices"<<endl;
   for(Vector<ACEplus_Vertex*>::iterator cur=newVertices.begin(), end=
 	newVertices.end() ; cur!=end ; ++cur) {
     ACEplus_Vertex *v=*cur;
@@ -1233,7 +1228,7 @@ double GraphBuilder::exonDefChange(Interval interval)
   double refNormalized=refScore/(refEnd-refBegin);
   double change=altNormalized-refNormalized;
 
-  cout<<"exonDefChange="<<exp(change)<<endl; // ###
+  //cout<<"exonDefChange="<<exp(change)<<endl; // ###
 
   return exp(change); // likelihood ratio (not logarithmic)
 }
@@ -1803,19 +1798,19 @@ bool GraphBuilder::buildGraph(bool strict)
 
   if(!strict) {
     // Add vertices & edges to address broken structures
-    cout<<"handling broken sites"<<endl;
+    //cout<<"handling broken sites"<<endl;
     if(signals.anyBroken()) handleBrokenSites();
-    cout<<G->getNumVertices()<<" vertices in graph"<<endl;
+    //cout<<G->getNumVertices()<<" vertices in graph"<<endl;
 
     // Add novel sites created by genetic variants
-    cout<<"predicting de novo sites"<<endl;
+    //cout<<"predicting de novo sites"<<endl;
     if(model.allowDeNovoSites) handleDeNovoSites();
-    cout<<G->getNumVertices()<<" vertices in graph"<<endl;
+    //cout<<G->getNumVertices()<<" vertices in graph"<<endl;
 
     // Add vertices/edges to accommodate structure changes due to ESE variants
-    cout<<"predicting regulatory changes"<<endl;
+    //cout<<"predicting regulatory changes"<<endl;
     if(model.allowRegulatoryChanges) handleRegulatoryChanges();
-    cout<<G->getNumVertices()<<" vertices in graph"<<endl;
+    //cout<<G->getNumVertices()<<" vertices in graph"<<endl;
 
     // Prune away any vertex or edge not reachable from both ends
     cout<<G->getNumVertices()<<" vertices before pruning"<<endl;
@@ -1828,9 +1823,9 @@ bool GraphBuilder::buildGraph(bool strict)
   markIntronRetentions();
 
   // Score edges
-  cout<<"scoring edges"<<endl;
+  //cout<<"scoring edges"<<endl;
   const int numEdges=G->getNumEdges();
-  cout<<numEdges<<" edges"<<endl;
+  //cout<<numEdges<<" edges"<<endl;
   for(int i=0 ; i<numEdges ; ++i) {
     LightEdge *edge=G->getEdge(i);
     scoreEdge(dynamic_cast<ACEplus_Edge*>(edge));
@@ -1839,13 +1834,13 @@ bool GraphBuilder::buildGraph(bool strict)
       G->dropEdge(i);
     }
   }
-  cout<<"deleting null edges"<<endl;
+  //cout<<"deleting null edges"<<endl;
   G->deleteNullEdges();
 
   // Determine whether mapping was exact
-  cout<<"checking for any changes"<<endl;
+  //cout<<"checking for any changes"<<endl;
   if(!allVerticesAreAnnotated()) changes=true;
-  cout<<"done checking"<<endl;
+  //cout<<"done checking"<<endl;
   return true;
 }
 

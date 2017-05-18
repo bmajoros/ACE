@@ -56,7 +56,8 @@ for gene in genes:
     if(transcript.numExons()==0): continue # skip noncoding genes
     extra=transcript.parseExtraFields() # array of [key,value] pairs
     hash=transcript.hashExtraFields(extra)
-    if(hash["gene_status"]!="KNOWN"): continue
+    if(hash.get("gene_status") is not None and
+       hash["gene_status"]!="KNOWN"): continue
     geneID=gene.getID()
     if(geneID in seen): continue
     seen.add(geneID)

@@ -261,8 +261,12 @@ void IMM::load(istream &is)
   if(getStrand()==FORWARD_STRAND) {
     BOOM::String modelType;
     is >> modelType;
-    revComp=new IMM(is,REVERSE_STRAND);
-    revComp->revComp=this; }
+    modelType.removeWhitespace();
+    if(modelType.isEmpty()) revComp=NULL;
+    else {
+      revComp=new IMM(is,REVERSE_STRAND);
+      revComp->revComp=this; }
+  }
 }
 
 

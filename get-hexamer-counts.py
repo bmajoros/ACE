@@ -15,8 +15,9 @@ import ProgramName
 from FastaReader import FastaReader
 from NgramIterator import NgramIterator
 
-OUT_OF_FRAME_ONLY=True
-IN_FRAME_ONLY=False
+OUT_OF_FRAME_ONLY=False # only matters if frame is annotated on defline
+IN_FRAME_ONLY=True
+NORMALIZE_COUNTS=False
 
 def getCounts_OOF(seq,frame):
     hash={}
@@ -51,7 +52,6 @@ def getCounts(seq,defline):
     return hash
 
 def getVector(counts,L):
-    #sampleSize=L-5
     sampleSize=0
     iter=NgramIterator("ACGT",6)
     while(True):
@@ -65,9 +65,11 @@ def getVector(counts,L):
         hexamer=iter.nextString()
         if(hexamer is None): break
         count=counts.get(hexamer,0)
-        fraction=float(count)/float(sampleSize)
-        fraction=round(fraction,4)
-        vector.append(fraction)
+        if(NORMALIZE_COUNTS):
+            fraction=float(count)/float(sampleSize)
+            fraction=round(fraction,4)
+            vector.append(fraction)
+        else: vector.append(float(count))
     return vector
 
 def emit(vector,label):

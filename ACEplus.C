@@ -142,27 +142,27 @@ void ACEplus::processConfig(const String &filename)
   model.MIN_EXON_LEN=MIN_EXON_LEN;
   model.MIN_INTRON_LEN=MIN_INTRON_LEN;
   model.NMD_DISTANCE_PARM=NMD_DISTANCE_PARM;
-  if(config.isDefined("exon-strengthening-threshold"))
+  //if(config.isDefined("exon-strengthening-threshold"))
     model.EXON_STRENGTHENING_THRESHOLD=
       config.getFloatOrDie("exon-strengthening-threshold");
-  else model.EXON_STRENGTHENING_THRESHOLD=2.0;
-  if(config.isDefined("exon-weakening-threshold"))
+  //else model.EXON_STRENGTHENING_THRESHOLD=2.0;
+  //if(config.isDefined("exon-weakening-threshold"))
     model.EXON_WEAKENING_THRESHOLD=
       config.getFloatOrDie("exon-weakening-threshold");
-  else model.EXON_WEAKENING_THRESHOLD=0.5;
+  //else model.EXON_WEAKENING_THRESHOLD=0.5;
   model.MIN_EXON_INTRON_RATIO=
     config.getFloatOrDie("min-exon-definition-score");
   model.allowExonSkipping=allowExonSkipping;
   model.allowIntronRetention=allowIntronRetention;
   model.allowCrypticSites=allowCrypticSites;
   model.allowDeNovoSites=config.getBoolOrDie("allow-denovo-sites");
-  if(config.isDefined("allow-cryptic-exons"))
+  //if(config.isDefined("allow-cryptic-exons"))
     model.allowCrypticExons=config.getBoolOrDie("allow-cryptic-exons");
-  else model.allowCrypticExons=false;
-  if(config.isDefined("allow-regulatory-changes"))
+  //else model.allowCrypticExons=false;
+  //if(config.isDefined("allow-regulatory-changes"))
     model.allowRegulatoryChanges=
       config.getBoolOrDie("allow-regulatory-changes");
-  else model.allowRegulatoryChanges=false;
+  //else model.allowRegulatoryChanges=false;
   model.MIN_SCORE=config.getFloatOrDie("min-path-score");
   model.MAX_ALT_STRUCTURES=config.getIntOrDie("max-alt-structures");
   if(config.isDefined("coef-denovo-exon"))
@@ -177,12 +177,12 @@ void ACEplus::processConfig(const String &filename)
     model.maxDeNovoExonLen=config.getIntOrDie("max-denovo-exon-length");
   if(config.isDefined("min-denovo-exon-LLR"))
     model.minDeNovoExonLLR=config.getFloatOrDie("min-denovo-exon-LLR");
+  if(config.isDefined("sensor-scale"))
+    model.sensorScale=config.getFloatOrDie("sensor-scale");
 
   // Use LLR for splice site signal sensors
   ContentSensor *bg=loadContentSensor("splice-background-model",config);
   model.contentSensors->setSpliceBackgroundModel(bg);
-  //model.signalSensors->donorSensor->useLogOdds_anonymous(*bg);
-  //model.signalSensors->acceptorSensor->useLogOdds_anonymous(*bg);
 
   // Load content sensors
   contentSensors.setSensor(EXON,loadContentSensor("exon-model",config));

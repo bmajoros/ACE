@@ -17,6 +17,8 @@ from NgramIterator import NgramIterator
 from Rex import Rex
 rex=Rex()
 
+HALF_BETAS=True
+
 def printHeader(featureType,N,OUT):
     print("IMM\n"+featureType+"\n"+str(N-1)+"\t-1\n"+str(N),file=OUT)
 
@@ -52,6 +54,7 @@ def loadFeatures(featureFile):
             if(rex.find("Intercept",feature)): continue
             if(score=="."): score=0.0
             else: score=float(score)
+            if(HALF_BETAS): score/=2.0
             features[feature]=score
             N=len(feature)
     return features
@@ -83,7 +86,7 @@ else: raise Exception(contentType+" must be EXON or INTRON")
 
 N=0
 features=loadFeatures(featureFile)
-normalize(features)
+#normalize(features)
 
 OUT=open(outFile,"wt")
 writeModel(contentType,N,features,sign,False,OUT)

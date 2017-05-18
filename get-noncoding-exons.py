@@ -58,7 +58,8 @@ for gene in genes:
     seen.add(geneID)
     chrom=transcript.getSubstrate()
     strand=transcript.getStrand()
-    for i in range(transcript.numUTR()):
+    #for i in range(transcript.numUTR()):
+    for i in range(1,transcript.numUTR()-1):
         exon=transcript.getIthUTR(i)
         interval=Interval(exon.getBegin(),exon.getEnd())
         seq=getSeq(chrom,strand,interval,twoBitFile)
