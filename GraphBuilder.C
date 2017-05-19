@@ -60,9 +60,10 @@ ACEplus_Vertex *GraphBuilder::newVertex(const String &substrate,
     int contextLen=sensor->getContextWindowLength();
     int windowBegin=begin-offset;
     ContentSensor *bg=model.contentSensors->getSpliceBackground();
-    double bgScore=bg->scoreSubsequence(altSeq,altSeqStr,windowBegin,
-					contextLen,0);
-    score-=bgScore; 
+    if(bg) {
+      double bgScore=bg->scoreSubsequence(altSeq,altSeqStr,windowBegin,
+					  contextLen,0);
+      score-=bgScore; }
     signalStr=SignalPrinter::print(*sensor,windowBegin,altSeqStr);
   }
   ACEplus_Vertex *v=
@@ -393,6 +394,7 @@ void GraphBuilder::handleBrokenSite_cryptic(LightVertex *v)
     if(sensor->consensusOccursAt(altSeqStr,consensusPos)) {
       double score=sensor->getLogP(altSeq,altSeqStr,pos);
       if(score<cutoff) continue;
+      //cout<<"XXX "<<score<<" vs "<<cutoff<<endl; // ###
       ACEplus_Vertex *v=newVertex(substrate,type,consensusPos,
 			       consensusPos+consensusLen,score,
 			       strand,nextVertexID++);

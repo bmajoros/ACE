@@ -7,6 +7,7 @@
 #include "LogisticSensor.H"
 #include "BOOM/Array1D.H"
 #include "BOOM/Exceptions.H"
+#include "BOOM/Constants.H"
 #include <iostream>
 #include <fstream>
 #include <math.h>
@@ -89,6 +90,18 @@ double LogisticSensor::getLogP(const Sequence &seq,const BOOM::String &str,
 			       int begin)
 {
   int len=matrix.getFirstDim();
+  double score=0.0;
+  for(int pos=0, index=begin ; pos<len ; ++pos, ++index)
+    score+=Pmatrix[pos][seq[index]];
+  return score;
+}
+
+
+
+double LogisticSensor::getRawScore(const Sequence &seq,const BOOM::String &str,
+			       int begin)
+{
+  int len=matrix.getFirstDim();
   double score=intercept;
   for(int pos=0, index=begin ; pos<len ; ++pos, ++index)
     score+=matrix[pos][seq[index]];
@@ -133,11 +146,14 @@ void LogisticSensor::load(istream &is)
   setStrand(strand);
   setSizes(consensusLength,consensusOffset,contextWindowLength);
   setCutoff(cutoff);
+  //setCutoff(-1000); // ### debugging
 
   matrix.resize(maxX,maxY);
   matrix.setAllTo(0.0);
+  int numLines;
+  is>>numLines;
   String line;
-  while(!is.eof()) {
+  for(int i=0 ; i<numLines ; ++i) {
     line.getline(is);
     Vector<String> fields;
     line.getFields(fields);
@@ -145,14 +161,26 @@ void LogisticSensor::load(istream &is)
       if(fields[0]!="intercept") 
 	throw RootException(line+
 			" : expecting intercept in LogisticSensor::load()");
-      intercept=fields[1].asDouble();
-    }
+      intercept=fields[1].asDouble(); }
     else if(fields.size()==3) {
       int position=fields[0].asInt();
       int symbol=alphabet.lookup(fields[1][0]);
-      matrix[position][symbol]=fields[2].asDouble();
-    }
-  }  
+      matrix[position][symbol]=fields[2].asDouble(); }
+  }
+  //cout<<matrix<<endl;
+  //exit(0);
+
+  Pmatrix.resize(maxX,maxY);
+  Pmatrix.setAllTo(NEGATIVE_INFINITY);
+  while(!is.eof()) {
+    line.getline(is);
+    Vector<String> fields;
+    line.getFields(fields);
+    if(fields.size()!=3) continue;
+    int position=fields[0].asInt();
+    int symbol=alphabet.lookup(fields[1][0]);
+    Pmatrix[position][symbol]=fields[2].asDouble();
+  }
 }
 
 
@@ -218,3 +246,13 @@ float LogisticSensor::divergence(LogisticSensor &other)
 {
   throw "LogisticSensor::divergence()";
 }
+
+
+
+double LogisticSensor::applyLogistic(double BX)
+{
+  double P=1.0/(1.0+exp(-BX));
+  return P;
+}
+
+

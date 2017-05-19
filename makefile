@@ -1985,6 +1985,7 @@ $(OBJ)/apply-signal-sensor.o:\
 		apply-signal-sensor.C
 #---------------------------------------------------------
 apply-signal-sensor: \
+		$(OBJ)/LogisticSensor.o \
 		$(OBJ)/CodonTree.o \
 		$(OBJ)/SignalPeptideSensor.o \
 		$(OBJ)/BranchAcceptor.o \
@@ -2024,6 +2025,7 @@ apply-signal-sensor: \
 		$(OBJ)/NthOrderStringIterator.o \
 		$(OBJ)/apply-signal-sensor.o
 	$(CC) $(LDFLAGS) -o apply-signal-sensor \
+		$(OBJ)/LogisticSensor.o \
 		$(OBJ)/CodonTree.o \
 		$(OBJ)/SignalPeptideSensor.o \
 		$(OBJ)/BranchAcceptor.o \

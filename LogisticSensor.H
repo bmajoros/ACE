@@ -16,6 +16,7 @@ class LogisticSensor : public SignalSensor
 {
 protected:
   BOOM::Array2D<float> matrix;
+  BOOM::Array2D<float> Pmatrix;
   float intercept;
   void load(istream &);
   void revComplementSelf();
@@ -38,8 +39,12 @@ public:
   virtual void useLogOdds(SignalSensor &nullModel);
   virtual void useLogOdds_anonymous(ContentSensor &nullModel);
   double getLogP(const Sequence &,const BOOM::String &,int begin);
+  double getRawScore(const Sequence &,const BOOM::String &,int begin);
   float divergence(LogisticSensor &);
   BOOM::Array2D<float> &getMatrix() {return matrix;}
+
+  // Specific to this class:
+  double applyLogistic(double BX); // P(splice site | sequence)
 };
 
 

@@ -32,7 +32,7 @@ my ($modelType,$posFasta,$negFasta,$filestem,$percentTrain,$signalType,
     $boostPercentile)=@ARGV;
 
 # DO SOME INITIALIZATION
-my $genezilla=$ENV{"GENEZILLA"};
+my $genezilla=$ENV{"ACEPLUS"};
 if(!defined($genezilla)) 
   {die "environment variable GENEZILLA must be set to GeneZilla install directory\n"}
 my $dashG=($percentTrain<1 ? "-g" : "");

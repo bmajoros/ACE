@@ -183,8 +183,9 @@ void ACEplus::processConfig(const String &filename)
     model.exonIntercept=config.getFloatOrDie("exon-intercept");
 
   // Use LLR for splice site signal sensors
-  ContentSensor *bg=loadContentSensor("splice-background-model",config);
-  model.contentSensors->setSpliceBackgroundModel(bg);
+  if(config.isDefined("splice-background-model")) {
+    ContentSensor *bg=loadContentSensor("splice-background-model",config);
+    model.contentSensors->setSpliceBackgroundModel(bg);}
 
   // Load content sensors
   contentSensors.setSensor(EXON,loadContentSensor("exon-model",config));

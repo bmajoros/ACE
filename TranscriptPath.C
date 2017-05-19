@@ -40,18 +40,20 @@ ACEplus_Edge *TranscriptPath::operator[](int i)
 
 void TranscriptPath::computeScore(const Model &model)
 {
+  const bool NO_SIGNALS=true;
   int N=edges.size();
   if(N==0) return 0.0;
-  score=edges[0]->getLeft()->getScore();
+  score=NO_SIGNALS ? 0.0 : edges[0]->getLeft()->getScore();
   for(int i=0 ; i<N ; ++i) {
     ACEplus_Edge *edge=dynamic_cast<ACEplus_Edge*>(edges[i]);
-    score+=edge->getScore()+edge->getRight()->getScore();
+    score+=edge->getScore();
+    if(!NO_SIGNALS) score+=edge->getRight()->getScore();
     //score+=edge->getRight()->getScore(); //### no content sensors!!!
     if(!isFinite(edge->getScore())) cout<<*edge<<endl;
     if(!isFinite(edge->getRight()->getScore()))
       cout<<*(edge->getRight())<<endl;
   }
-  score+=model.exonIntercept;
+  //score+=model.exonIntercept;
   return score;
 }
 
