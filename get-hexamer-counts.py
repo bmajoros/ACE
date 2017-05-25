@@ -16,7 +16,7 @@ from FastaReader import FastaReader
 from NgramIterator import NgramIterator
 
 OUT_OF_FRAME_ONLY=False # only matters if frame is annotated on defline
-IN_FRAME_ONLY=True
+IN_FRAME_ONLY=False
 NORMALIZE_COUNTS=False
 
 def getCounts_OOF(seq,frame):

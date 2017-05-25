@@ -115,6 +115,7 @@ void TranscriptPaths::computePosteriors()
   }
 
   // Normalize again in non-log space, to fix rounding issues
+  /*
   if(false) {
     for(int i=0 ; i<numPaths ; ++i) {
       TranscriptPath *path=paths[i];
@@ -122,6 +123,7 @@ void TranscriptPaths::computePosteriors()
       if(!isFinite(path->getScore())) {
 	cerr<<"path score="<<path->getScore()<<endl;
 	INTERNAL_ERROR;}}}
+  */
 }
 
 

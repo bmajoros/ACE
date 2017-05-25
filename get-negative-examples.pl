@@ -6,7 +6,7 @@ use FastaWriter;
 
 my $iso="0-100";
 
-my $MAX_EXAMPLES=1000;#1000000;#2000;
+my $MAX_EXAMPLES=10000;#1000000;#2000;
 my $DONOR_CONTEXT_BEGIN=-80;
 my $DONOR_CONTEXT_LENGTH=162;
 my $ACCEPTOR_CONTEXT_BEGIN=-80;
@@ -28,7 +28,11 @@ open(STOPCODONS,">non-stop-codons.fasta");
 
 my $exonHash=FastaReader::readAll("internal-exons.fasta");
 my @exons=values %$exonHash;
-my $intergenicHash=FastaReader::readAll("intergenic.fasta");
+push @exons,values %{FastaReader::readAll("initial-exons.fasta")};
+push @exons,values %{FastaReader::readAll("final-exons.fasta")};
+push @exons,values %{FastaReader::readAll("single-exons.fasta")};
+#my $intergenicHash=FastaReader::readAll("intergenic.fasta");
+my $intergenicHash=FastaReader::readAll("introns.fasta");
 my @intergenic=values %$intergenicHash;
 
 #######################################################################
@@ -36,12 +40,33 @@ my @intergenic=values %$intergenicHash;
 #######################################################################
 my $donors=
   getExampleSignals(\@exons,"GT",$DONOR_CONTEXT_BEGIN,$DONOR_CONTEXT_LENGTH,
-	      $MAX_EXAMPLES/2);
+	      $MAX_EXAMPLES);
+my $donorsGC=
+  getExampleSignals(\@exons,"GC",$DONOR_CONTEXT_BEGIN,$DONOR_CONTEXT_LENGTH,
+	      $MAX_EXAMPLES);
+my $donorsAT=
+  getExampleSignals(\@exons,"AT",$DONOR_CONTEXT_BEGIN,$DONOR_CONTEXT_LENGTH,
+	      $MAX_EXAMPLES);
 my $moreDonors=
   getExampleSignals(\@intergenic,"GT",$DONOR_CONTEXT_BEGIN,
-		    $DONOR_CONTEXT_LENGTH,$MAX_EXAMPLES/2);
+		    $DONOR_CONTEXT_LENGTH,$MAX_EXAMPLES);
+my $moreDonorsGC=
+  getExampleSignals(\@intergenic,"GC",$DONOR_CONTEXT_BEGIN,
+		    $DONOR_CONTEXT_LENGTH,$MAX_EXAMPLES);
+my $moreDonorsAT=
+  getExampleSignals(\@intergenic,"AT",$DONOR_CONTEXT_BEGIN,
+		    $DONOR_CONTEXT_LENGTH,$MAX_EXAMPLES);
+push @$donors,@$donorsGC;
+push @$donors,@$donorsAT;
+push @$moreDonors,@$moreDonorsGC;
+push @$moreDonors,@$moreDonorsAT;
+shuffle($donors); shuffle($moreDonors);
+truncateArray($donors,$MAX_EXAMPLES/2);
+truncateArray($moreDonors,$MAX_EXAMPLES/2);
+my $numFromExons=@$donors;
+my $numFromIntrons=@$moreDonors;
+print "$numFromExons donors from exons, $numFromIntrons from introns\n";
 push @$donors,@$moreDonors;
-while(@$donors>$numDonors) {pop @$donors}
 foreach my $donor (@$donors)
   {
     print DONORS ">non-donor\n$donor\n";
@@ -52,12 +77,25 @@ foreach my $donor (@$donors)
 #######################################################################
 my $acceptors=
   getExampleSignals(\@exons,"AG",$ACCEPTOR_CONTEXT_BEGIN,
-		    $ACCEPTOR_CONTEXT_LENGTH,$MAX_EXAMPLES/2);
+		    $ACCEPTOR_CONTEXT_LENGTH,$MAX_EXAMPLES);
+my $acceptorsAC=
+  getExampleSignals(\@exons,"AC",$ACCEPTOR_CONTEXT_BEGIN,
+		    $ACCEPTOR_CONTEXT_LENGTH,$MAX_EXAMPLES);
 my $moreAcceptors=
   getExampleSignals(\@intergenic,"AG",$ACCEPTOR_CONTEXT_BEGIN,
-	      $ACCEPTOR_CONTEXT_LENGTH,$MAX_EXAMPLES/2);
+	      $ACCEPTOR_CONTEXT_LENGTH,$MAX_EXAMPLES);
+my $moreAcceptorsAC=
+  getExampleSignals(\@intergenic,"AC",$ACCEPTOR_CONTEXT_BEGIN,
+	      $ACCEPTOR_CONTEXT_LENGTH,$MAX_EXAMPLES);
+push @$acceptors,@$acceptorsAC;
+push @$moreAcceptors,@$moreAcceptorsAC;
+shuffle($acceptors); shuffle($moreAcceptors);
+truncateArray($acceptors,$MAX_EXAMPLES/2);
+truncateArray($moreAcceptors,$MAX_EXAMPLES/2);
+my $numFromExons=@$acceptors;
+my $numFromIntrons=@$moreAcceptors;
+print "$numFromExons acceptors from exons, $numFromIntrons from introns\n";
 push @$acceptors,@$moreAcceptors;
-while(@$acceptors>$numAcceptors) {pop @$acceptors}
 foreach my $acceptor (@$acceptors)
   {
     print ACCEPTORS ">non-acceptor\n$acceptor\n";
@@ -146,6 +184,22 @@ appendToPool("final-exons.fasta",\$pool);
 getExampleContent("introns",\$pool);
 
 #------------------------------------------------------------
+sub truncateArray {
+  my ($array,$n)=@_;
+  splice(@$array,$n,@$array-$n);
+}
+#------------------------------------------------------------
+sub shuffle {
+  my ($array)=@_;
+  my $L=@$array;
+  for(my $i=0 ; $i<$L ; ++$i) {
+    my $j=$i+int(rand($L-$i));
+    my $temp=$array->[$i];
+    $array->[$i]=$array->[$j];
+    $array->[$j]=$temp;
+  }
+}
+#------------------------------------------------------------
 sub appendToPool
   {
     my ($infile,$pool)=@_;
@@ -201,6 +255,8 @@ sub getExampleSignals
 		my ($example,$remainder)=($1,$2);
 		push @examples,$example;
 		$exon=$remainder;
+		#my $remainderLen=length($remainder);
+		#print "$remainderLen remainder\n";
 		next;
 	      }
 	    last;

@@ -16,7 +16,7 @@ class LogisticSensor : public SignalSensor
 {
 protected:
   BOOM::Array2D<float> matrix;
-  BOOM::Array2D<float> Pmatrix;
+  //BOOM::Array2D<float> Pmatrix;
   float intercept;
   void load(istream &);
   void revComplementSelf();

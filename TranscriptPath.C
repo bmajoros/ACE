@@ -37,24 +37,37 @@ ACEplus_Edge *TranscriptPath::operator[](int i)
 }
 
 
+double novelVertexScore(const Model &model,Vector<ACEplus_Edge*> &edges)
+{
+  int N=edges.size();
+  if(N==0) return 0.0;
+  double score=NEGATIVE_INFINITY;
+  for(int i=0 ; i<N ; ++i) {
+    ACEplus_Edge *edge=edges[i];
+    ACEplus_Vertex *v=edge->getRight();
+    if(v->isAnnotated()) continue;
+    if(!isFinite(score) || v->getScore()<score) score=edge->getScore();
+  }
+  return score;
+}
+
+
 
 void TranscriptPath::computeScore(const Model &model)
 {
-  const bool NO_SIGNALS=true;
+  const bool INCLUDE_CONTENT=true;
+  const bool INCLUDE_SIGNALS=true;
   int N=edges.size();
   if(N==0) return 0.0;
-  score=NO_SIGNALS ? 0.0 : edges[0]->getLeft()->getScore();
+  score=INCLUDE_SIGNALS ? edges[0]->getLeft()->getScore() : 0.0;
   for(int i=0 ; i<N ; ++i) {
-    ACEplus_Edge *edge=dynamic_cast<ACEplus_Edge*>(edges[i]);
-    score+=edge->getScore();
-    if(!NO_SIGNALS) score+=edge->getRight()->getScore();
-    //score+=edge->getRight()->getScore(); //### no content sensors!!!
+    ACEplus_Edge *edge=edges[i];
+    if(INCLUDE_CONTENT) score+=edge->getScore();
+    if(INCLUDE_SIGNALS) score+=edge->getRight()->getScore();
     if(!isFinite(edge->getScore())) cout<<*edge<<endl;
     if(!isFinite(edge->getRight()->getScore()))
       cout<<*(edge->getRight())<<endl;
   }
-  //score+=model.exonIntercept;
-  return score;
 }
 
 

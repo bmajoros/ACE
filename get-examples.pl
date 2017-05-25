@@ -6,7 +6,7 @@ use FastaWriter;
 use ProgramName;
 $|=1;
 
-my $MAX_DUPLICATE_COUNT=100; # set to 1 to eliminate duplicates
+my $MAX_DUPLICATE_COUNT=1; # set to 1 to eliminate duplicates
 
 # PROCESS THE COMMAND LINE
 my $name=ProgramName::get();
@@ -32,8 +32,8 @@ my $shouldTrim=0;
 
 # SET SOME LIMITS
 my $MAX_EXONS=1000000; #10000;
-my $MAX_DONORS=1000000; #500000;
-my $MAX_ACCEPTORS=1000000; #500000;
+my $MAX_DONORS=10000; #500000;
+my $MAX_ACCEPTORS=10000; #500000;
 my $MAX_START_CODONS=100000; #50000;
 my $MAX_STOP_CODONS=1000; #50000;
 my $MAX_INTRONS=1000000; #10000;

@@ -11,6 +11,7 @@
 #include "ACEplus_Edge.H"
 #include "ACEplus_Vertex.H"
 #include "SignalPrinter.H"
+#include "LogisticSensor.H"
 #include "BOOM/Stack.H"
 using namespace std;
 using namespace BOOM;
@@ -53,7 +54,7 @@ ACEplus_Vertex *GraphBuilder::newVertex(const String &substrate,
     return NULL;
   }
   SignalSensor *sensor=model.signalSensors->findSensor(type);
-  const double rawScore=score;
+  double rawScore=score;
   String signalStr;
   if(sensor) {
     int offset=sensor->getConsensusOffset();
@@ -68,6 +69,12 @@ ACEplus_Vertex *GraphBuilder::newVertex(const String &substrate,
   }
   ACEplus_Vertex *v=
     new ACEplus_Vertex(substrate,type,begin,end,score,strand,ID);
+  /*
+  LogisticSensor *logSensor=dynamic_cast<LogisticSensor*>(sensor);
+  if(logSensor)
+    rawScore=logSensor->getRawScore(altSeq,altSeqStr,//### not ref?
+				begin-sensor->getConsensusOffset());
+  */
   v->setRawScore(rawScore);
   v->setSeq(signalStr);
   if(denovo) v->setDeNovo();
@@ -174,7 +181,7 @@ double GraphBuilder::scoreEdge(ACEplus_Edge *edge)
     cerr<<"length="<<L<<", duration score="<<durationScore<<endl;
     INTERNAL_ERROR;
   }
-  //score+=durationScore;
+  //score+=durationScore; // ###
 
   // Get transition probability
   const int numChoices=edge->getLeft()->getEdgesOut().size();
@@ -188,7 +195,7 @@ double GraphBuilder::scoreEdge(ACEplus_Edge *edge)
     cerr<<"trans="<<transProb<<" from="<<fromType<<" to="<<toType<<endl;
     INTERNAL_ERROR;
   }
-  //score+=transProb;
+  //score+=transProb; // ###
 
   if(numChoices==0) {
     cout<<*edge->getLeft()<<endl;
@@ -393,8 +400,8 @@ void GraphBuilder::handleBrokenSite_cryptic(LightVertex *v)
     if(consensusPos==v->getBegin()) continue;
     if(sensor->consensusOccursAt(altSeqStr,consensusPos)) {
       double score=sensor->getLogP(altSeq,altSeqStr,pos);
+      //cout<<"XXX "<<score<<" vs "<<cutoff<<"\t"<<substrate<<"\t"<<consensusPos<<endl; // ###
       if(score<cutoff) continue;
-      //cout<<"XXX "<<score<<" vs "<<cutoff<<endl; // ###
       ACEplus_Vertex *v=newVertex(substrate,type,consensusPos,
 			       consensusPos+consensusLen,score,
 			       strand,nextVertexID++);
@@ -842,15 +849,18 @@ void GraphBuilder::deNovoSignalSensing(SignalSensor &sensor,
       if(pos+sensorLen>altSeq.getLength()) continue;
       if(sensor.consensusOccursAt(altSeqStr,pos+consensusOffset)) {
 	const double altScore=sensor.getLogP(altSeq,altSeqStr,pos);
+	//cout<<"XXX1 "<<altScore<<" vs "<<threshold<<"\t"<<substrate<<"\t"<<pos+consensusOffset<<endl; // ###
 	if(altScore<threshold) continue;
 	const int refPos=altToRef[pos];
 	if(refPos!=CIGAR_UNDEFINED && refPos+sensorLen<=refSeq.getLength() &&
 	   sensor.consensusOccursAt(refSeqStr,refPos+consensusOffset)) {
 	  const double refScore=sensor.getLogP(refSeq,refSeqStr,refPos);
+	  //cout<<"XXX2 "<<refScore<<" vs "<<threshold<<"\t"<<substrate<<"\t"<<refPos+consensusOffset<<endl; // ###
 	  if(refScore>=threshold) continue; // ref already had a signal there
 	  if(altScore-refScore<log(2)) continue; // less than a 2-fold increase
 	}
 	if(altScore<threshold+log(2)) continue; // must be >= 2*threshold
+	//cout<<"XXX "<<altScore<<" vs "<<threshold<<"\t"<<substrate<<"\t"<<pos+consensusOffset<<endl; // ###
 	ACEplus_Vertex *v=newVertex(substrate,signalType,pos+consensusOffset,
 				    pos+consensusOffset+consensusLen,
 				    altScore,strand,G->getNumVertices(),
@@ -1462,6 +1472,7 @@ void GraphBuilder::scan(const Interval &scanWindow,SignalType signalType,
     if(pos+sensorLen>altSeq.getLength()) continue;
     if(sensor.consensusOccursAt(altSeqStr,pos+consensusOffset)) {
       const double altScore=sensor.getLogP(altSeq,altSeqStr,pos);
+      //cout<<"XXX3 "<<altScore<<" vs "<<sensor.getCutoff()<<"\t"<<substrate<<"\t"<<pos+consensusOffset<<endl; // ###
       if(altScore<sensor.getCutoff()) continue;
       ACEplus_Vertex *v=newVertex(substrate,signalType,pos+consensusOffset,
 			       pos+consensusOffset+consensusLen,
@@ -1843,6 +1854,7 @@ bool GraphBuilder::buildGraph(bool strict)
   //cout<<"checking for any changes"<<endl;
   if(!allVerticesAreAnnotated()) changes=true;
   //cout<<"done checking"<<endl;
+  //cout<<*G<<endl;
   return true;
 }
 

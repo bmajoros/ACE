@@ -20,7 +20,8 @@ import TempFilename
 from Rex import Rex
 rex=Rex()
 
-PSEUDOCOUNT=1
+PSEUDOCOUNT=0.1
+MIN_SENSITIVITY=0.99
 WANT_TEST=True
 POS_TEST_FILE="logreg-test.pos"
 NEG_TEST_FILE="logreg-test.neg"
@@ -162,14 +163,14 @@ def getCutoff(betas,positives,begin,end):
     model=getModel(betas)
     scores=getRawScores(model,positives,begin,end)
     scores.sort()
-    threshold=round(scores[int(len(scores)*0.05)],3)
+    threshold=round(scores[int(len(scores)*(1.0-MIN_SENSITIVITY))],3)
     return threshold
 
 def getFreqCutoff(freqs,positives,begin,end):
     model=freqs
     scores=getRawScores(model,positives,begin,end)
     scores.sort()
-    threshold=round(scores[int(len(scores)*0.05)],3)
+    threshold=round(scores[int(len(scores)*(1.0-MIN_SENSITIVITY))],3)
     return threshold
 
 def output(betas,signalType,consensusOffset,consensusLen,windowLen,threshold,
@@ -198,13 +199,13 @@ def output(betas,signalType,consensusOffset,consensusLen,windowLen,threshold,
                 raise Exception("can't parse "+feature)
             print(rex[1],rex[2],beta,sep="\t")
     print()
-    for pos in range(windowLen):
-        for nuc in ALPHABET:
-            if(nuc=="N"): continue
-            key=str(pos)+nuc
-            value=freqs.get(key,0.0)
-            value=round(value,4)
-            print(pos,nuc,value,sep="\t")
+    #for pos in range(windowLen):
+    #    for nuc in ALPHABET:
+    #        if(nuc=="N"): continue
+    #        key=str(pos)+nuc
+    #        value=freqs.get(key,0.0)
+    #        value=round(value,4)
+    #        print(pos,nuc,value,sep="\t")
 
 def loadBetas(filename):
     betas=[]
@@ -245,8 +246,8 @@ consensusOffset=LEFT_MARGIN
 consensusLen=2 # splice sites only!
 windowLen=LEFT_MARGIN+2+RIGHT_MARGIN
 freqs=getFreqs(begin,end,positives,consensuses)
-#cutoff=getCutoff(betas,positives,begin,end)
-cutoff=getFreqCutoff(freqs,positives,begin,end)
+cutoff=getCutoff(betas,positives,begin,end)
+#cutoff=getFreqCutoff(freqs,positives,begin,end)
 output(betas,signalType,consensusOffset,consensusLen,windowLen,cutoff,freqs)
 if(WANT_TEST): test(betas,positives,negatives,begin,end)
 

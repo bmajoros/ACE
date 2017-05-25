@@ -89,11 +89,15 @@ void LogisticSensor::convertToLogs()
 double LogisticSensor::getLogP(const Sequence &seq,const BOOM::String &str,
 			       int begin)
 {
+  return getRawScore(seq,str,begin); // ###
+
+  /*
   int len=matrix.getFirstDim();
   double score=0.0;
   for(int pos=0, index=begin ; pos<len ; ++pos, ++index)
     score+=Pmatrix[pos][seq[index]];
   return score;
+  */
 }
 
 
@@ -146,7 +150,6 @@ void LogisticSensor::load(istream &is)
   setStrand(strand);
   setSizes(consensusLength,consensusOffset,contextWindowLength);
   setCutoff(cutoff);
-  //setCutoff(-1000); // ### debugging
 
   matrix.resize(maxX,maxY);
   matrix.setAllTo(0.0);
@@ -170,6 +173,7 @@ void LogisticSensor::load(istream &is)
   //cout<<matrix<<endl;
   //exit(0);
 
+  /*
   Pmatrix.resize(maxX,maxY);
   Pmatrix.setAllTo(NEGATIVE_INFINITY);
   while(!is.eof()) {
@@ -180,7 +184,7 @@ void LogisticSensor::load(istream &is)
     int position=fields[0].asInt();
     int symbol=alphabet.lookup(fields[1][0]);
     Pmatrix[position][symbol]=fields[2].asDouble();
-  }
+    }*/
 }
 
 
