@@ -45,13 +45,15 @@ int ACEplus::main(int argc,char *argv[])
   if(VERBOSE) cerr<<"loading inputs"<<endl;
   loadInputs(configFile,refGffFile,refFasta,altFasta);
 
-  // Build prefix-sum arrays for fast scoring
-  buildPSAs(contentSensors,altSeqLen,altSeq,altSeqStr);
-
   // Check that the reference gene is well-formed
   if(VERBOSE) cerr<<"checking reference gene"<<endl;
   status=new Essex::CompositeNode("status");
   bool referenceIsOK=checkRefGene();
+  if(!referenceIsOK && quiet) 
+    { cout<<"ACE terminated successfully"<<endl; return 0; }
+
+  // Build prefix-sum arrays for fast scoring
+  buildPSAs(contentSensors,altSeqLen,altSeq,altSeqStr);
 
   // Set up to generate structured output in Essex/XML
   if(VERBOSE) cerr<<"preparing output"<<endl;

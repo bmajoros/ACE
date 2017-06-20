@@ -78,7 +78,7 @@ for gene in genes:
             transcript.getID()+" /strand="+strand+" /exon="+str(i)+\
             " /frame="+str(exon.getFrame())
         nextExonID+=1
-        print("adding exon",len(seq),flush=True)
+        #print("adding exon",len(seq),flush=True)
         writer.addToFasta(defline,seq,EXONS)
     introns=transcript.getIntrons()
     #print(len(introns),"introns",flush=True)

@@ -22,7 +22,7 @@ rex=Rex()
 
 PSEUDOCOUNT=0.1
 MIN_SENSITIVITY=0.99
-WANT_TEST=True
+WANT_TEST=False
 POS_TEST_FILE="logreg-test.pos"
 NEG_TEST_FILE="logreg-test.neg"
 POS_RAW_FILE="logreg-raw.pos"

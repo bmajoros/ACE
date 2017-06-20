@@ -24,7 +24,7 @@ if(len(sys.argv)!=2):
 reader=GFF3Parser()
 transcripts=reader.loadGFF(infile)
 n=len(transcripts)
-print(n," transcripts loaded")
+print(n," transcripts loaded",file=sys.stderr)
 for transcript in transcripts:
     gff=transcript.toGff()
     print(gff)

@@ -153,8 +153,15 @@ double GraphBuilder::scoreEdge(ACEplus_Edge *edge)
     edge->setScore(NEGATIVE_INFINITY);
     return;
   }
-  double score=model.contentSensors->score(edge->getType(),edge->getBegin(),
-					  edge->getEnd());
+
+  //###
+  const int OFFSET=6;
+  //const int OFFSET=0;
+  //###
+
+  double score=model.contentSensors->score(edge->getType(),
+					   edge->getBegin()+OFFSET,
+					   edge->getEnd());
   if(!isFinite(score)) {
     cerr<<*edge<<endl;
     cerr<<"edge emission score = "<<score<<" begin="<<edge->getBegin()<<

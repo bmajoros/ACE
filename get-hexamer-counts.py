@@ -15,6 +15,7 @@ import ProgramName
 from FastaReader import FastaReader
 from NgramIterator import NgramIterator
 
+INTRON_MARGIN=10
 OUT_OF_FRAME_ONLY=False # only matters if frame is annotated on defline
 IN_FRAME_ONLY=False
 NORMALIZE_COUNTS=False
@@ -84,6 +85,7 @@ def process(filename,label):
         (defline,seq)=reader.nextSequence()
         if(not defline): break
         if(len(seq)<50): continue
+        if(label==0): seq=seq[INTRON_MARGIN:len(seq)-INTRON_MARGIN]
         counts=getCounts(seq,defline)
         vector=getVector(counts,len(seq))
         emit(vector,label)
