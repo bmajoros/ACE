@@ -2459,6 +2459,7 @@ $(OBJ)/ace.o:\
 		ace.C
 #---------------------------------------------------------
 ace: \
+		$(OBJ)/LogisticSensor.o \
 		$(OBJ)/ACE.o \
 		$(OBJ)/SignalPrinter.o \
 		$(OBJ)/OrfAnalyzer.o \
@@ -2521,6 +2522,7 @@ ace: \
 		$(OBJ)/ProjectionChecker.o \
 		$(OBJ)/ace.o
 	$(CC) $(LDFLAGS) -o ace \
+		$(OBJ)/LogisticSensor.o \
 		$(OBJ)/ACE.o \
 		$(OBJ)/SignalPrinter.o \
 		$(OBJ)/OrfAnalyzer.o \
