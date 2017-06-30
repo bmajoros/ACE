@@ -1,0 +1,4 @@
+obj/SignalSensor.o: In function `SignalSensor::load(std::basic_istream<char, std::char_traits<char> >&, GarbageCollector&)':
+SignalSensor.C:(.text+0x869): undefined reference to `LogisticSensor::LogisticSensor(GarbageCollector&, std::basic_istream<char, std::char_traits<char> >&)'
+collect2: ld returned 1 exit status
+make: *** [IMM-to-periodic] Error 1

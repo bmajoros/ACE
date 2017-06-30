@@ -712,6 +712,7 @@ $(OBJ)/train-signal-sensor.o:\
 		train-signal-sensor.C
 #---------------------------------------------------------
 train-signal-sensor: \
+		$(OBJ)/LogisticSensor.o \
 		$(OBJ)/CodonTree.o \
 		$(OBJ)/SignalPeptideSensor.o \
 		$(OBJ)/BranchAcceptor.o \
@@ -751,6 +752,7 @@ train-signal-sensor: \
 		$(OBJ)/ModelType.o \
 		$(OBJ)/train-signal-sensor.o
 	$(CC) $(LDFLAGS) -o train-signal-sensor \
+		$(OBJ)/LogisticSensor.o \
 		$(OBJ)/CodonTree.o \
 		$(OBJ)/SignalPeptideSensor.o \
 		$(OBJ)/BranchAcceptor.o \
@@ -884,6 +886,7 @@ $(OBJ)/compile-markov-chain.o:\
 		compile-markov-chain.C
 #---------------------------------------------------------
 compile-markov-chain: \
+		$(OBJ)/LogisticSensor.o \
 		$(OBJ)/SignalPeptideSensor.o \
 		$(OBJ)/Edge.o \
 		$(OBJ)/TrainingSequence.o \
@@ -921,6 +924,7 @@ compile-markov-chain: \
 		$(OBJ)/SignalTypeProperties.o \
 		$(OBJ)/compile-markov-chain.o
 	$(CC) $(LDFLAGS) -o compile-markov-chain \
+		$(OBJ)/LogisticSensor.o \
 		$(OBJ)/SignalPeptideSensor.o \
 		$(OBJ)/Edge.o \
 		$(OBJ)/CodonTree.o \
@@ -3004,6 +3008,7 @@ $(OBJ)/IMM-to-periodic.o:\
 		IMM-to-periodic.C
 #---------------------------------------------------------
 IMM-to-periodic: \
+		$(OBJ)/LogisticSensor.o \
 		$(OBJ)/VirtualSignalSensor.o \
 		$(OBJ)/EvidenceFilter.o \
 		$(OBJ)/RnaJunction.o \
@@ -3056,6 +3061,7 @@ IMM-to-periodic: \
 		$(OBJ)/GZilla.o \
 		$(OBJ)/IMM-to-periodic.o
 	$(CC) $(LDFLAGS) -o IMM-to-periodic \
+		$(OBJ)/LogisticSensor.o \
 		$(OBJ)/VirtualSignalSensor.o \
 		$(OBJ)/EvidenceFilter.o \
 		$(OBJ)/RnaJunction.o \
