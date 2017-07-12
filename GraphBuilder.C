@@ -419,8 +419,8 @@ void GraphBuilder::handleBrokenSite_cryptic(LightVertex *v)
       String signalStr=SignalPrinter::print(*sensor,pos,altSeqStr);
       v->setSeq(signalStr);
       G->addVertex(v);
-      for(Vector<LightEdge*>::iterator cur=in.begin(), end=in.end() ; 
-	  cur!=end ; ++cur) {
+      for(Vector<LightEdge*>::iterator cur=in.begin(), end1=in.end() ; 
+	  cur!=end1 ; ++cur) {
 	LightEdge *edge=*cur; LightVertex *left=edge->getLeft();
 	int begin, end, dummy;
 	getContextWindow(left,dummy,begin); getContextWindow(v,end,dummy);
@@ -435,8 +435,8 @@ void GraphBuilder::handleBrokenSite_cryptic(LightVertex *v)
 	left->addEdgeOut(new_Edge);
 	v->addEdgeIn(new_Edge); G->addEdge(new_Edge);
       }
-      for(Vector<LightEdge*>::iterator cur=out.begin(), end=out.end() ; 
-	  cur!=end ; ++cur) {
+      for(Vector<LightEdge*>::iterator cur=out.begin(), end1=out.end() ; 
+	  cur!=end1 ; ++cur) {
 	LightEdge *edge=*cur; LightVertex *right=edge->getRight();
 	int begin, end, dummy;
 	getContextWindow(v,dummy,begin); getContextWindow(right,end,dummy);
@@ -495,7 +495,7 @@ void GraphBuilder::handleSkippingLeft(LightVertex *v)
   Vector<LightEdge*> &leftIntrons=leftEdge->getLeft()->getEdgesIn();
   if(leftIntrons.size()==0 || leftIntrons[0]->getType()!=INTRON) return;
   for(Vector<LightEdge*>::iterator cur=leftIntrons.begin(), 
-	end=leftIntrons.end() ; cur!=end ; ++cur) {
+	end1=leftIntrons.end() ; cur!=end1 ; ++cur) {
     LightVertex *from=(*cur)->getLeft();
     int begin, end, dummy;
     getContextWindow(from,dummy,begin); getContextWindow(to,end,dummy);
@@ -529,7 +529,7 @@ void GraphBuilder::handleSkippingRight(LightVertex *v)
   Vector<LightEdge*> &rightIntrons=rightEdge->getRight()->getEdgesOut();
   if(rightIntrons.size()==0 || rightIntrons[0]->getType()!=INTRON) return;
   for(Vector<LightEdge*>::iterator cur=rightIntrons.begin(), 
-	end=rightIntrons.end() ; cur!=end ; ++cur) {
+	end1=rightIntrons.end() ; cur!=end1 ; ++cur) {
     LightVertex *to=(*cur)->getRight();
     int begin, end, dummy;
     getContextWindow(from,dummy,begin); getContextWindow(to,end,dummy);
@@ -571,7 +571,7 @@ void GraphBuilder::handleRetentionLeft(LightVertex *v)
   LightVertex *to=rightEdge->getRight();
   Vector<LightEdge*> &leftExons=leftEdge->getLeft()->getEdgesIn();
   for(Vector<LightEdge*>::iterator cur=leftExons.begin(), 
-	end=leftExons.end() ; cur!=end ; ++cur) {
+	end1=leftExons.end() ; cur!=end1 ; ++cur) {
     LightVertex *from=(*cur)->getLeft();
     int begin, end, dummy;
     getContextWindow(from,dummy,begin); getContextWindow(to,end,dummy);
@@ -603,7 +603,7 @@ void GraphBuilder::handleRetentionRight(LightVertex *v)
   LightVertex *from=leftEdge->getLeft();
   Vector<LightEdge*> &rightExons=rightEdge->getRight()->getEdgesOut();
   for(Vector<LightEdge*>::iterator cur=rightExons.begin(), 
-	end=rightExons.end() ; cur!=end ; ++cur) {
+	end1=rightExons.end() ; cur!=end1 ; ++cur) {
     LightVertex *to=(*cur)->getRight();
     int begin, end, dummy;
     getContextWindow(from,dummy,begin); getContextWindow(to,end,dummy);
@@ -812,8 +812,8 @@ void GraphBuilder::getVariantWindows(Vector<Interval> &windows,
 				     Vector<Interval> &variants)
 {
   const int sensorLen=sensor.getContextWindowLength();
-  for(Vector<Interval>::iterator cur=variants.begin(), end=variants.end() ;
-      cur!=end ; ++cur) {
+  for(Vector<Interval>::iterator cur=variants.begin(), end1=variants.end() ;
+      cur!=end1 ; ++cur) {
     const Interval &variant=*cur;
     int begin=variant.getBegin()-sensorLen+1;
     if(begin<0) begin=0;
@@ -1334,8 +1334,8 @@ void GraphBuilder::handleExonWeakening(const Vector<Interval> &variants,
   Vector< pair<Interval,ExonEdge> > variantsInExons;
   getVariantsInExons(variants,exons,variantsInExons);
   for(Vector< pair<Interval,ExonEdge> >::const_iterator 
-	cur=variantsInExons.begin(), end=variantsInExons.end() ;
-      cur!=end ; ++cur) {
+	cur=variantsInExons.begin(), end1=variantsInExons.end() ;
+      cur!=end1 ; ++cur) {
     const pair<Interval,ExonEdge> &p=*cur;
     Interval variant=p.first;
     ExonEdge exon=p.second;

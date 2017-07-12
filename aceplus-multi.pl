@@ -41,6 +41,8 @@ my $commandline = join " ", $0, @ARGV;
 print "$commandline\n";
 system("hostname");
 
+#exit(); ###
+
 $altFasta=~/(\d)\.fasta/ || die $altFasta;
 my $HAP=$1;
 my $OUT_PATH=".";
