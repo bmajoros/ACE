@@ -125,6 +125,7 @@ Mutate::Mutate()
 {
   // ctor
 
+  randomize();
   bin=Environment::lookup("ACEPLUS");
   gffTempFile=TempFilename::get();
   refTempFile=TempFilename::get();
@@ -584,13 +585,15 @@ bool Mutate::checkDenovo(const Sequence &seq,const String &newSeqStr,
   if(createsConsensus(oldSeqStr,newSeqStr,mutationPos,t)) {
     if(createsSite(seq,newSeqStr,mutationPos,t)) {
       incrementDenovo(t);
-      if(scoreDenovo(seq,newSeqStr,oldSeqStr,transcripts)>=MIN_SCORE)
+      if(MIN_SCORE<=0.0 ||
+	 scoreDenovo(seq,newSeqStr,oldSeqStr,transcripts)>=MIN_SCORE)
 	return true; }
   }
   if(createsConsensus(oldSeqStr,newSeqStr,mutationPos-1,t)) {
     if(createsSite(seq,newSeqStr,mutationPos-1,t)) {
       incrementDenovo(t);
-      if(scoreDenovo(seq,newSeqStr,oldSeqStr,transcripts)>MIN_SCORE)
+      if(MIN_SCORE<=0.0 ||
+	 scoreDenovo(seq,newSeqStr,oldSeqStr,transcripts)>MIN_SCORE)
 	return true; }
   }
   return false;
