@@ -11,7 +11,7 @@
 #include "BOOM/RouletteWheel.H"
 #include "BOOM/TempFilename.H"
 #include "BOOM/FastaWriter.H"
-#include "ACE.H"
+#include "ACEplus.H"
 #include "ContentSensors.H"
 #include "Model.H"
 using namespace std;
@@ -40,7 +40,7 @@ struct AllenMatrix : public SubstMatrix {
   virtual void prepareMultinomials();
 };
 
-class Mutate : public ACE {
+class Mutate : public ACEplus {
 public:
   Mutate();
   virtual ~Mutate() {}
@@ -58,6 +58,8 @@ protected:
   float MIN_SCORE;
   FastaWriter fastaWriter;
   String bin;
+  bool USE_SPLICE_MODEL;
+  int MAX_DISTANCE;
   //Map<String,Vector<SubstMatrix> > matrices;
   AllenMatrix matrix;
   virtual void parseCommandLine(const CommandLine &);
@@ -89,8 +91,14 @@ protected:
   float scoreDenovo(const Sequence &seq,const String &newSeqStr,
 		    const String &oldSeqStr,
 		    Vector<GffTranscript*> &transcripts);
+  float scoreDenovo(const Sequence &seq,const String &newSeqStr,
+		    Vector<GffTranscript*> &transcripts,
+		    SignalType,int pos);
   float loadScore(GffTranscript &refTrans,
 		  Vector<GffTranscript*> &transcripts);
+  void getCoords(GffTranscript &transcript,SignalType,int signalPos,
+		 int &begin,int &end,ContentType &);
+  ContentType getContentType(GffTranscript &,int pos,Interval &);
 };
 
 #endif

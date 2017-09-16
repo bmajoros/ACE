@@ -189,6 +189,7 @@ int Mutate::main(int argc,char *argv[])
     }
     Vector<SpliceSite> spliceSites;
     getSpliceSites(transcripts,spliceSites,seq);
+    if(spliceSites.size()==0) continue;
     simulate(seq,spliceSites,matrix,transcripts);
     ++genesProcessed;
     if(genesProcessed>=MAX_GENES) break;
@@ -257,9 +258,9 @@ void Mutate::loadInputs(const String &configFile,const String &refGffFile,
  ****************************************************************/
 void Mutate::parseCommandLine(const CommandLine &cmd)
 {
-  if(cmd.numArgs()!=7)
+  if(cmd.numArgs()!=9)
     throw String("\n\
-mutate <ace.config> <ref.gff> <ref.fasta> <max-genes> <mutations-per-gene> <subst-matrices> <min-score>\n\
+mutate <ace.config> <ref.gff> <ref.fasta> <max-genes> <mutations-per-gene> <subst-matrices> <min-score> <use-splice-model:0|1> <max-exon-extension>\n\
 \n");
   configFile=cmd.arg(0);
   refGffFile=cmd.arg(1);
@@ -268,6 +269,8 @@ mutate <ace.config> <ref.gff> <ref.fasta> <max-genes> <mutations-per-gene> <subs
   MUTATIONS_PER_GENE=cmd.arg(4).asInt();
   matrixFile=cmd.arg(5);
   MIN_SCORE=cmd.arg(6).asFloat();
+  USE_SPLICE_MODEL=bool(cmd.arg(7).asInt());
+  MAX_DISTANCE=cmd.arg(8).asInt();
 }
 
 
@@ -559,6 +562,7 @@ void Mutate::incrementDenovo(SignalType t)
 bool Mutate::createsSite(const Sequence &seq,const String &seqStr,
 			 int consensusPos,SignalType t)
 {
+  if(!USE_SPLICE_MODEL) return true;
   SignalSensor *sensor=sensors.findSensor(t);
   const float threshold=sensor->getCutoff();
   const int offset=sensor->getConsensusOffset();
@@ -586,14 +590,16 @@ bool Mutate::checkDenovo(const Sequence &seq,const String &newSeqStr,
     if(createsSite(seq,newSeqStr,mutationPos,t)) {
       incrementDenovo(t);
       if(MIN_SCORE<=0.0 ||
-	 scoreDenovo(seq,newSeqStr,oldSeqStr,transcripts)>=MIN_SCORE)
+	 //scoreDenovo(seq,newSeqStr,oldSeqStr,transcripts)>=MIN_SCORE)
+	 scoreDenovo(seq,newSeqStr,transcripts,t,mutationPos)>=MIN_SCORE)
 	return true; }
   }
   if(createsConsensus(oldSeqStr,newSeqStr,mutationPos-1,t)) {
     if(createsSite(seq,newSeqStr,mutationPos-1,t)) {
       incrementDenovo(t);
       if(MIN_SCORE<=0.0 ||
-	 scoreDenovo(seq,newSeqStr,oldSeqStr,transcripts)>MIN_SCORE)
+	 //scoreDenovo(seq,newSeqStr,oldSeqStr,transcripts)>MIN_SCORE)
+	 scoreDenovo(seq,newSeqStr,transcripts,t,mutationPos)>MIN_SCORE)
 	return true; }
   }
   return false;
@@ -673,6 +679,100 @@ aceplus <ace.config> <ref.gff> <ref.fasta> <alt.fasta> <out.gff> <out.essex>
   }
   return bestScore;
 }
+
+
+
+/****************************************************************
+ Mutate::scoreDenovo()
+ ****************************************************************/
+float Mutate::scoreDenovo(const Sequence &seq,const String &seqStr,
+			  Vector<GffTranscript*> &transcripts,
+			  SignalType signalType,int pos)
+{
+  float bestScore=NEGATIVE_INFINITY;
+  for(Vector<GffTranscript*>::iterator cur=transcripts.begin(),
+	end=transcripts.end() ; cur!=end ; ++cur) {
+    GffTranscript *transcript=*cur;
+    int begin, end;
+    ContentType contentType;
+    getCoords(*transcript,signalType,pos,begin,end,contentType);
+    double score=contentSensors.score(contentType,begin,end);
+    if(score>bestScore) bestScore=score;
+  }
+  return bestScore;
+}
+
+
+
+/****************************************************************
+ Mutate::getContentType()
+ ****************************************************************/
+ContentType Mutate::getContentType(GffTranscript &transcript,int pos,
+				   Interval &interval)
+{
+  // Shouldn't be intergenic
+  if(pos<transcript.getBegin() || pos>=transcript.getEnd()) INTERNAL_ERROR;
+
+  // See if it's exonic
+  Vector<GffExon*> exons;
+  transcript.getRawExons(exons);
+  ContentType type=UNKNOWN_CONTENT_FORWARD;
+  for(Vector<GffExon*>::iterator cur=exons.begin(), end=exons.end() ;
+      cur!=end ; ++cur) {
+    GffExon *exon=*cur;
+    interval=exon->getInterval();
+    if(interval.contains(pos)) { type=EXON; break; }
+  }
+  transcript.deleteExons(exons);
+
+  // See if it's intronic
+  if(type==UNKNOWN_CONTENT_FORWARD) {
+    Vector<Interval> introns;
+    transcript.getIntrons(introns);
+    for(Vector<Interval>::iterator cur=introns.begin(), end=introns.end() ;
+	cur!=end ; ++cur) {
+      const Interval &intron=*cur;
+      if(intron.contains(pos)) { type=INTRON; interval=intron; break; }
+    }}
+  if(type==UNKNOWN_CONTENT_FORWARD) INTERNAL_ERROR;
+  return type;
+}
+
+
+/****************************************************************
+ Mutate::getCoords()
+ ****************************************************************/
+void Mutate::getCoords(GffTranscript &transcript,SignalType signalType,
+		       int signalPos,int &begin,int &end,
+		       ContentType &contentType)
+{
+  Interval exonOrIntron;
+  ContentType annotatedContent=
+    getContentType(transcript,signalPos,exonOrIntron);
+  switch(signalType) {
+  case GT:
+    switch(annotatedContent) {
+    case EXON: // shorten exon on the right
+      begin=signalPos; end=exonOrIntron.getEnd(); contentType=INTRON;
+      break;
+    case INTRON: // lengthen exon to the right
+      begin=exonOrIntron.getBegin(); end=signalPos; contentType=EXON;
+      break;
+    }
+    break;
+  case AG:
+    switch(annotatedContent) {
+    case EXON: // shorten exon on the left
+      begin=exonOrIntron.getBegin(); end=signalPos; contentType=INTRON;
+      break;
+    case INTRON: // lengthen exon to the left
+      begin=signalPos; end=exonOrIntron.getEnd(); contentType=EXON;
+      break;
+    }
+    break;
+  default: INTERNAL_ERROR; }
+}
+
 
 
 
