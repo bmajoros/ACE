@@ -176,6 +176,7 @@ double GraphBuilder::scoreEdge(ACEplus_Edge *edge)
   score*=model.sensorScale;
 
   // Get duration probability
+  /*
   const int L=edge->getLength();
   DiscreteDistribution *distr=NULL;
   if(edge->isExon()) distr=model.exonLengthDistr;
@@ -188,12 +189,12 @@ double GraphBuilder::scoreEdge(ACEplus_Edge *edge)
     cerr<<"length="<<L<<", duration score="<<durationScore<<endl;
     INTERNAL_ERROR;
   }
-  //score+=durationScore; // ###
+  score+=durationScore; // ###
+  */
 
   // Get transition probability
   const int numChoices=edge->getLeft()->getEdgesOut().size();
-  //double uniform=1.0/numChoices;
-  //const double transProb=log(uniform);
+  /*
   SignalType fromType=edge->getLeft()->getSignalType();
   SignalType toType=edge->getRight()->getSignalType();
   const double transProb=model.transitions->getLogP(fromType,toType);
@@ -202,7 +203,8 @@ double GraphBuilder::scoreEdge(ACEplus_Edge *edge)
     cerr<<"trans="<<transProb<<" from="<<fromType<<" to="<<toType<<endl;
     INTERNAL_ERROR;
   }
-  //score+=transProb; // ###
+  score+=transProb; // ###
+  */
 
   if(numChoices==0) {
     cout<<*edge->getLeft()<<endl;

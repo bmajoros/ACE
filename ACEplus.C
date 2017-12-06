@@ -158,13 +158,13 @@ void ACEplus::processConfig(const String &filename)
   model.allowIntronRetention=allowIntronRetention;
   model.allowCrypticSites=allowCrypticSites;
   model.allowDeNovoSites=config.getBoolOrDie("allow-denovo-sites");
-  //if(config.isDefined("allow-cryptic-exons"))
+  if(config.isDefined("allow-cryptic-exons"))
     model.allowCrypticExons=config.getBoolOrDie("allow-cryptic-exons");
-  //else model.allowCrypticExons=false;
-  //if(config.isDefined("allow-regulatory-changes"))
+  else model.allowCrypticExons=false;
+  if(config.isDefined("allow-regulatory-changes"))
     model.allowRegulatoryChanges=
       config.getBoolOrDie("allow-regulatory-changes");
-  //else model.allowRegulatoryChanges=false;
+  else model.allowRegulatoryChanges=false;
   model.MIN_SCORE=config.getFloatOrDie("min-path-score");
   model.MAX_ALT_STRUCTURES=config.getIntOrDie("max-alt-structures");
   if(config.isDefined("coef-denovo-exon"))
@@ -196,22 +196,26 @@ void ACEplus::processConfig(const String &filename)
 			   loadContentSensor("intergenic-model",config));
 
   // Load duration distributions
-  model.intergenicLengthDistr=
-    new GeometricDistribution(config.lookupOrDie("mean-intergenic-length").
-			      asInt());
-  model.intronLengthDistr=
-    new GeometricDistribution(config.lookupOrDie("mean-intron-length").
-			      asInt());
-  model.exonLengthDistr=
-    new EmpiricalDistribution(config.lookupOrDie("exon-length-distr"));
+  if(config.isDefined("mean-intergenic-length"))
+    model.intergenicLengthDistr=
+      new GeometricDistribution(config.lookupOrDie("mean-intergenic-length").
+				asInt());
+  if(config.isDefined("mean-intron-length"))
+    model.intronLengthDistr=
+      new GeometricDistribution(config.lookupOrDie("mean-intron-length").
+				asInt());
+  if(config.isDefined("exon-length-distr"))
+    model.exonLengthDistr=
+      new EmpiricalDistribution(config.lookupOrDie("exon-length-distr"));
   /*model.spliceShiftDistr=
     new EmpiricalDistribution(config.lookupOrDie("splice-shift-distr"));*/
 
   // Load transition probabilities
-  String transitionFile=config.lookupOrDie("transitions");
-  ifstream is(transitionFile.c_str());
-  model.transitions=new Transitions(numSignalTypes(),is,0,0);
-  is.close();
+  if(config.isDefined("transitions")) {
+    String transitionFile=config.lookupOrDie("transitions");
+    ifstream is(transitionFile.c_str());
+    model.transitions=new Transitions(numSignalTypes(),is,0,0);
+    is.close(); }
 
   chdir(oldPath);
   delete [] oldPath;

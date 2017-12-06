@@ -125,7 +125,7 @@ Mutate::Mutate()
 {
   // ctor
 
-  randomize();
+  //randomize();
   bin=Environment::lookup("ACEPLUS");
   gffTempFile=TempFilename::get();
   refTempFile=TempFilename::get();
@@ -258,9 +258,9 @@ void Mutate::loadInputs(const String &configFile,const String &refGffFile,
  ****************************************************************/
 void Mutate::parseCommandLine(const CommandLine &cmd)
 {
-  if(cmd.numArgs()!=9)
+  if(cmd.numArgs()!=10)
     throw String("\n\
-mutate <ace.config> <ref.gff> <ref.fasta> <max-genes> <mutations-per-gene> <subst-matrices> <min-score> <use-splice-model:0|1> <max-exon-extension>\n\
+mutate <ace.config> <ref.gff> <ref.fasta> <max-genes> <mutations-per-gene> <subst-matrices> <min-exon-score> <min-intron-score> <use-splice-model:0|1> <max-exon-extension>\n\
 \n");
   configFile=cmd.arg(0);
   refGffFile=cmd.arg(1);
@@ -268,9 +268,11 @@ mutate <ace.config> <ref.gff> <ref.fasta> <max-genes> <mutations-per-gene> <subs
   MAX_GENES=cmd.arg(3).asInt();
   MUTATIONS_PER_GENE=cmd.arg(4).asInt();
   matrixFile=cmd.arg(5);
-  MIN_SCORE=cmd.arg(6).asFloat();
-  USE_SPLICE_MODEL=bool(cmd.arg(7).asInt());
-  MAX_DISTANCE=cmd.arg(8).asInt();
+  MIN_EXON_SCORE=cmd.arg(6)=="." ? NEGATIVE_INFINITY : cmd.arg(6).asFloat();
+  MIN_INTRON_SCORE=cmd.arg(7)=="." ? NEGATIVE_INFINITY : cmd.arg(7).asFloat();
+  //cout<<MIN_EXON_SCORE<<"\t"<<MIN_INTRON_SCORE<<endl;
+  USE_SPLICE_MODEL=bool(cmd.arg(8).asInt());
+  MAX_DISTANCE=cmd.arg(9).asInt();
 }
 
 
@@ -298,6 +300,12 @@ void Mutate::processConfig(const String &filename)
 
   // Misc initialization
   model.signalSensors=&sensors;
+
+  // Load content sensors
+  contentSensors.setSensor(EXON,loadContentSensor("exon-model",config));
+  contentSensors.setSensor(INTRON,loadContentSensor("intron-model",config));
+  contentSensors.setSensor(INTERGENIC,
+			   loadContentSensor("intergenic-model",config));
 
   // Use LLR for splice site signal sensors
   if(config.isDefined("splice-background-model")) {
@@ -585,22 +593,22 @@ bool Mutate::checkDenovo(const Sequence &seq,const String &newSeqStr,
 			 Vector<GffTranscript*> &transcripts)
 {
   if(hitsExistingSite(mutationPos,spliceSites)) return false;
-  SignalType t;
+  SignalType t; ContentType c;
   if(createsConsensus(oldSeqStr,newSeqStr,mutationPos,t)) {
     if(createsSite(seq,newSeqStr,mutationPos,t)) {
-      incrementDenovo(t);
-      if(MIN_SCORE<=0.0 ||
-	 //scoreDenovo(seq,newSeqStr,oldSeqStr,transcripts)>=MIN_SCORE)
-	 scoreDenovo(seq,newSeqStr,transcripts,t,mutationPos)>=MIN_SCORE)
-	return true; }
+      float score=scoreDenovo(seq,newSeqStr,transcripts,t,mutationPos,c);
+      float minScore=c==EXON ? MIN_EXON_SCORE : MIN_INTRON_SCORE;
+      if(score>=minScore) {
+	incrementDenovo(t);
+	return true;}}
   }
   if(createsConsensus(oldSeqStr,newSeqStr,mutationPos-1,t)) {
     if(createsSite(seq,newSeqStr,mutationPos-1,t)) {
-      incrementDenovo(t);
-      if(MIN_SCORE<=0.0 ||
-	 //scoreDenovo(seq,newSeqStr,oldSeqStr,transcripts)>MIN_SCORE)
-	 scoreDenovo(seq,newSeqStr,transcripts,t,mutationPos)>MIN_SCORE)
-	return true; }
+      float score=scoreDenovo(seq,newSeqStr,transcripts,t,mutationPos,c);
+      float minScore=c==EXON ? MIN_EXON_SCORE : MIN_INTRON_SCORE;
+      if(score>=minScore) {
+	incrementDenovo(t);
+	return true;}}
   }
   return false;
 }
@@ -663,19 +671,11 @@ float Mutate::scoreDenovo(const Sequence &seq,const String &newSeqStr,
     // Parse output to get score
     GffReader reader(outTempFile);
     Vector<GffTranscript*> *predictions=reader.loadTranscripts();
-    //system((String("cat ")+outTempFile).c_str());
     float score=loadScore(*transcript,*predictions);
-    //cout<<"score\t"<<score<<endl;
     for(Vector<GffTranscript*>::iterator cur=predictions->begin(), 
 	  end=predictions->end() ; cur!=end ; ++cur) delete *cur;
     delete predictions;
     if(score>bestScore) bestScore=score;
-
-  /*
-aceplus <ace.config> <ref.gff> <ref.fasta> <alt.fasta> <out.gff> <out.essex>
-     -c = sequence has been reversed, but cigar string has not
-  alt.fasta must have a cigar string: >ID ... /cigar=1045M3I10M7D4023M ...
-   */
   }
   return bestScore;
 }
@@ -687,18 +687,23 @@ aceplus <ace.config> <ref.gff> <ref.fasta> <alt.fasta> <out.gff> <out.essex>
  ****************************************************************/
 float Mutate::scoreDenovo(const Sequence &seq,const String &seqStr,
 			  Vector<GffTranscript*> &transcripts,
-			  SignalType signalType,int pos)
+			  SignalType signalType,int pos,
+			  ContentType &contentType)
 {
   float bestScore=NEGATIVE_INFINITY;
+  ContentType bestContentType;
   for(Vector<GffTranscript*>::iterator cur=transcripts.begin(),
 	end=transcripts.end() ; cur!=end ; ++cur) {
     GffTranscript *transcript=*cur;
     int begin, end;
-    ContentType contentType;
     getCoords(*transcript,signalType,pos,begin,end,contentType);
-    double score=contentSensors.score(contentType,begin,end);
-    if(score>bestScore) bestScore=score;
+    if(contentType==UNKNOWN_CONTENT_FORWARD) continue;
+    ContentSensor *sensor=contentSensors.getSensor(contentType);
+    if(!sensor) throw "No sensor";
+    double score=sensor->scoreSubsequence(seq,seqStr,begin,end-begin,0);
+    if(score>bestScore) { bestScore=score; bestContentType=contentType; }
   }
+  contentType=bestContentType;
   return bestScore;
 }
 
@@ -711,7 +716,8 @@ ContentType Mutate::getContentType(GffTranscript &transcript,int pos,
 				   Interval &interval)
 {
   // Shouldn't be intergenic
-  if(pos<transcript.getBegin() || pos>=transcript.getEnd()) INTERNAL_ERROR;
+  if(pos<transcript.getBegin() || pos>=transcript.getEnd())
+    return UNKNOWN_CONTENT_FORWARD;
 
   // See if it's exonic
   Vector<GffExon*> exons;
@@ -749,6 +755,8 @@ void Mutate::getCoords(GffTranscript &transcript,SignalType signalType,
   Interval exonOrIntron;
   ContentType annotatedContent=
     getContentType(transcript,signalPos,exonOrIntron);
+  if(annotatedContent==UNKNOWN_CONTENT_FORWARD)
+    { contentType=annotatedContent; return; }
   switch(signalType) {
   case GT:
     switch(annotatedContent) {

@@ -55,7 +55,7 @@ protected:
   int MUTATIONS_PER_GENE;
   String matrixFile;
   String gffTempFile, refTempFile, altTempFile, outTempFile, essexTempFile;
-  float MIN_SCORE;
+  float MIN_EXON_SCORE, MIN_INTRON_SCORE;
   FastaWriter fastaWriter;
   String bin;
   bool USE_SPLICE_MODEL;
@@ -93,7 +93,7 @@ protected:
 		    Vector<GffTranscript*> &transcripts);
   float scoreDenovo(const Sequence &seq,const String &newSeqStr,
 		    Vector<GffTranscript*> &transcripts,
-		    SignalType,int pos);
+		    SignalType,int pos,ContentType &);
   float loadScore(GffTranscript &refTrans,
 		  Vector<GffTranscript*> &transcripts);
   void getCoords(GffTranscript &transcript,SignalType,int signalPos,
