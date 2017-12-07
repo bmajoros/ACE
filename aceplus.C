@@ -19,7 +19,8 @@ int main(int argc,char *argv[])
     return ace.main(argc,argv);
   }
   catch(const char *p) { cerr << p << endl; }
-  catch(const string &msg) { cerr << msg.c_str() << endl; }
+  catch(string msg) { cerr << msg.c_str() << endl; }
+  catch(const String &msg) { cerr << msg.c_str() << endl; }
   catch(const exception &e)
     { cerr << "STL exception caught in main:\n" << e.what() << endl; }
   catch(...)
