@@ -921,6 +921,7 @@ void ACE::mapTranscript(const String &outfile)
   CigarAlignment &align=*alignment;
   Vector<GffExon*> rawExons;
   refTrans->getRawExons(rawExons);
+  //refTrans->toGff(cout);
   GffTranscript transcript(refTrans->getTranscriptId(),
 			   refTrans->getSubstrate(),
 			   refTrans->getStrand(),"ACE");
@@ -930,7 +931,9 @@ void ACE::mapTranscript(const String &outfile)
   for(Vector<GffExon*>::iterator cur=rawExons.begin(), end=rawExons.end() ;
 	cur!=end ; ++cur) {
     GffExon *exon=new GffExon(**cur,transcript);
+    //cout<<"BEFORE: ";exon->toGff(cout);
     if(!mapExon(*exon,align)) INTERNAL_ERROR;
+    //cout<<"AFTER ";exon->toGff(cout);
     transcript.addUTR(exon);
   }
   GffTranscript::deleteExons(rawExons);
