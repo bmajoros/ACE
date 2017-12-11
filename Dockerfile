@@ -16,6 +16,27 @@ RUN curl -SLo ${DEST_DIR}/gsl-${GSL_VERSION}.tar.gz ${GSL} && \
     make install && \
     rm -rf ${DEST_DIR}/gsl-${GSL_VERSION}
 
+# Install R
+RUN wget https://cloud.r-project.org/src/base/R-3/R-3.4.3.tar.gz && \
+	tar xvfz R-3.4.3.tar.gz && \
+	cd R-3.4.3 && \
+	./configure && \
+	make
+
+# Install R package "glmnet"
+RUN echo "r <- getOption('repos'); r['CRAN'] <- 'http://cran.us.r-project.org'; options(repos = r);" > ~/.Rprofile
+RUN /R-3.4.3/bin/Rscript -e "install.packages('glmnet')"
+
+# Install python version 3.6
+RUN wget https://www.python.org/ftp/python/3.6.3/Python-3.6.3.tgz && \
+	tar xvfz Python-3.6.3.tgz && \
+	cd Python-3.6.3 && \
+	./configure && \
+	make
+
+# Put env in /bin so our scripts can call it normally
+RUN cp /usr/bin/env /bin
+
 # Download and install kentUtikls
 RUN git clone git://github.com/ENCODE-DCC/kentUtils.git && \
     cd kentUtils && \
@@ -35,15 +56,6 @@ RUN curl -SLo ${DEST_DIR}/tabix-${TABIX_VERSION}.tar.bz2 ${TABIX_URL} && \
     cp -r tabix ${DEST_DIR} && \
     rm -rf ${DEST_DIR}/tabix-${TABIX_VERSION}
 
-
-# Download and compile ACE libraries
-RUN cd ${DEST_DIR} && \
-    mkdir ace && \
-    cd ace && \
-    git clone --recursive git://github.com/bmajoros/ACE.git && \
-    cd ACE && \
-    make all
-
 # Download bgzip from htslib
 RUN git clone https://github.com/samtools/htslib.git && \
     cd htslib && \
@@ -51,12 +63,8 @@ RUN git clone https://github.com/samtools/htslib.git && \
     make install
 
 # Setup the environment
-ENV PATH=${DEST_DIR}:${PATH}
+ENV PATH=${DEST_DIR}:/R-3.4.3/bin:/Python-3.6.3:${PATH}
 ENV TMPDIR=/tmp/
-ENV ACE=${DEST_DIR}/ace/ACE
-ENV PERLLIB=${DEST_DIR}/ace/ACE/perl
-ENV PATH=${DEST_DIR}/ace/ACE:${DEST_DIR}/ace/ACE/perl:${PATH}
 ENV LD_LIBRARY_PATH=/usr/local/lib
 
-# Default command for the image (when is run without any command)
-CMD ["ace.pl"]
+
