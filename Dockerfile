@@ -63,12 +63,12 @@ RUN git clone https://github.com/samtools/htslib.git && \
     make install
 
 RUN git clone --recursive https://github.com/bmajoros/ACE.git && \
-    export TMPDIR=/tmp
-    export ACE=/ACE
-    export ACEPLUS=/ACE
-    export PERLLIB=/ACE/perl
-    export PYTHONPATH=/ACE/python
-    cd ACE
+    export TMPDIR=/tmp && \
+    export ACE=/ACE && \
+    export ACEPLUS=/ACE && \
+    export PERLLIB=/ACE/perl && \
+    export PYTHONPATH=/ACE/python && \
+    cd ACE && \
     make all
 
 # Setup the environment
