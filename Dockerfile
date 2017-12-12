@@ -69,7 +69,8 @@ RUN git clone --recursive https://github.com/bmajoros/ACE.git && \
     export PERLLIB=/ACE/perl && \
     export PYTHONPATH=/ACE/python && \
     cd ACE && \
-    make all
+    make all && \
+    cp *.pl *.py *.R aceplus ace compile-markov-chain subset-vcf-by-sample train-signal-sensor tvf-to-fasta vcf-to-tvf /usr/local/bin
 
 # Setup the environment
 ENV ACE=/ACE
