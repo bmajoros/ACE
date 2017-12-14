@@ -37,7 +37,7 @@ RUN wget https://www.python.org/ftp/python/3.6.3/Python-3.6.3.tgz && \
 # Put env in /bin so our scripts can call it normally
 RUN cp /usr/bin/env /bin
 
-# Download and install kentUtikls
+# Download and install kentUtils
 RUN git clone git://github.com/ENCODE-DCC/kentUtils.git && \
     cd kentUtils && \
     make && \
@@ -46,15 +46,15 @@ RUN git clone git://github.com/ENCODE-DCC/kentUtils.git && \
     rm -rf kentUtils
 
 # Download tabix from Samtools
-ENV TABIX_VERSION=0.2.6
-ENV TABIX_URL=https://sourceforge.net/projects/samtools/files/tabix/tabix-${TABIX_VERSION}.tar.bz2/download
-RUN curl -SLo ${DEST_DIR}/tabix-${TABIX_VERSION}.tar.bz2 ${TABIX_URL} && \
-    tar -xf ${DEST_DIR}/tabix-${TABIX_VERSION}.tar.bz2 -C ${DEST_DIR} && \
-    rm ${DEST_DIR}/tabix-${TABIX_VERSION}.tar.bz2 && \
-    cd ${DEST_DIR}/tabix-${TABIX_VERSION} && \
-    make && \
-    cp -r tabix ${DEST_DIR} && \
-    rm -rf ${DEST_DIR}/tabix-${TABIX_VERSION}
+#ENV TABIX_VERSION=0.2.6
+#ENV TABIX_URL=https://sourceforge.net/projects/samtools/files/tabix/tabix-${TABIX_VERSION}.tar.bz2/download
+#RUN curl -SLo ${DEST_DIR}/tabix-${TABIX_VERSION}.tar.bz2 ${TABIX_URL} && \
+#    tar -xf ${DEST_DIR}/tabix-${TABIX_VERSION}.tar.bz2 -C ${DEST_DIR} && \
+#    rm ${DEST_DIR}/tabix-${TABIX_VERSION}.tar.bz2 && \
+#    cd ${DEST_DIR}/tabix-${TABIX_VERSION} && \
+#    make && \
+#    cp -r tabix ${DEST_DIR} && \
+#    rm -rf ${DEST_DIR}/tabix-${TABIX_VERSION}
 
 # Download bgzip from htslib
 RUN git clone https://github.com/samtools/htslib.git && \
