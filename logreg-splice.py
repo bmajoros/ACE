@@ -30,7 +30,7 @@ NEG_RAW_FILE="logreg-raw.neg"
 TEST_ROC="logreg-test.roc"
 ACEPLUS=os.environ["ACEPLUS"]
 ALPHABET=("A","C","G","T")
-QUIET=False
+QUIET=True
 
 def getModel(betas):
     model={}
