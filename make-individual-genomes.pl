@@ -140,7 +140,7 @@ for(my $i=0 ; $i<$numGenes ; ++$i) {
   my $dashD=$DRY_RUN ? "-d" : "";
   my $dashP=$ploidy!=2 ? " -p $ploidy " : "";
   my $errFile="$outDir/err.out";
-  System("$ACE/tvf-to-fasta $dashP $dashD $dashY -r $geneTvfFile $twoBitFile $tempBedFile $altGeneFasta >& $errFile");
+  System("$ACE/tvf-to-fasta $dashP $dashD $dashY -r $geneTvfFile $twoBitFile $tempBedFile $altGeneFasta > $errFile");
   my $err=`cat $errFile`;
   if($err=~/error/ || $err=~/Abort/) { die $err }
   my (%warnings,%errors);
