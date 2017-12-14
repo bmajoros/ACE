@@ -71,6 +71,8 @@ RUN git clone --recursive https://github.com/bmajoros/ACE.git && \
     cd ACE && \
     make all
 
+RUN cp /ACE/pam10 /root
+
 # Setup the environment
 ENV ACE=/ACE
 ENV ACEPLUS=/ACE
