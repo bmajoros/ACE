@@ -25,8 +25,7 @@ all: \
 	map-annotations \
 	IMM-to-periodic \
 	compile-markov-chain \
-	permissions \
-	*.py *.pl
+	permissions
 
 permissions:
 	chmod a+x *.pl ; chmod a+x perl/*.pl
